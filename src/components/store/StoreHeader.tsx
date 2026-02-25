@@ -12,7 +12,7 @@ const StoreHeader = () => {
   const navigate = useNavigate();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-[hsl(0_0%_5%)] text-white backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-primary/80 bg-primary text-primary-foreground backdrop-blur">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
           <div className="flex h-10 w-10 items-center justify-center overflow-hidden">
