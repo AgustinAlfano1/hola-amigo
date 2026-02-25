@@ -1,11 +1,66 @@
-import { X, Minus, Plus, Trash2 } from 'lucide-react';
+import { X, Minus, Plus, Trash2, Loader2 } from 'lucide-react';
+import { useState } from 'react';
 import { useCart } from '@/contexts/CartContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 const CartDrawer = () => {
   const { items, isOpen, setIsOpen, removeFromCart, updateQuantity, totalPrice, clearCart } = useCart();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [paying, setPaying] = useState(false);
 
   const formatPrice = (price: number) =>
     new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(price);
+
+  const handleCheckout = async () => {
+    if (!user) {
+      toast({ title: 'Iniciá sesión para comprar', variant: 'destructive' });
+      setIsOpen(false);
+      navigate('/auth');
+      return;
+    }
+
+    setPaying(true);
+    try {
+      const payload = {
+        items: items.map(({ product, quantity }) => ({
+          name: product.name,
+          brand: product.brand,
+          price: product.price,
+          quantity,
+        })),
+      };
+
+      const { data, error } = await supabase.functions.invoke('create-mp-preference', {
+        body: payload,
+      });
+
+      if (error) throw error;
+
+      // Use sandbox URL for test mode
+      const redirectUrl = data.sandbox_init_point || data.init_point;
+      if (redirectUrl) {
+        clearCart();
+        setIsOpen(false);
+        window.location.href = redirectUrl;
+      } else {
+        throw new Error('No se pudo obtener la URL de pago');
+      }
+    } catch (err: any) {
+      console.error('Checkout error:', err);
+      toast({
+        title: 'Error al procesar el pago',
+        description: err.message || 'Intentá de nuevo',
+        variant: 'destructive',
+      });
+    } finally {
+      setPaying(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -71,8 +126,19 @@ const CartDrawer = () => {
               <span className="font-body text-sm text-muted-foreground">Total</span>
               <span className="font-heading text-2xl font-bold text-foreground">{formatPrice(totalPrice)}</span>
             </div>
-            <button className="w-full rounded-lg bg-primary py-3 font-heading text-sm font-semibold tracking-wider text-primary-foreground transition-colors hover:bg-primary/90">
-              Pagar con Mercado Pago
+            <button
+              onClick={handleCheckout}
+              disabled={paying}
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 font-heading text-sm font-semibold tracking-wider text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+            >
+              {paying ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Procesando...
+                </>
+              ) : (
+                'Pagar con Mercado Pago'
+              )}
             </button>
             <button onClick={clearCart} className="w-full rounded-lg border border-border py-2 font-body text-xs text-muted-foreground hover:text-foreground">
               Vaciar carrito

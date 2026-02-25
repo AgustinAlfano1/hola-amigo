@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminCheck } from '@/hooks/useAdminCheck';
 import { Package, ShoppingBag, Users, LayoutDashboard, LogOut, ArrowLeft } from 'lucide-react';
+import NotificationsBell from '@/components/admin/NotificationsBell';
 
 const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
@@ -41,11 +42,14 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
     <div className="flex h-screen bg-background">
       {/* Sidebar */}
       <aside className="flex w-64 flex-col bg-sidebar text-sidebar-foreground">
-        <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary">
-            <LayoutDashboard className="h-4 w-4 text-sidebar-primary-foreground" />
+        <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary">
+              <LayoutDashboard className="h-4 w-4 text-sidebar-primary-foreground" />
+            </div>
+            <span className="font-heading text-base font-bold tracking-wider">Admin Panel</span>
           </div>
-          <span className="font-heading text-base font-bold tracking-wider">Admin Panel</span>
+          <NotificationsBell />
         </div>
 
         <nav className="flex-1 space-y-1 p-3">
