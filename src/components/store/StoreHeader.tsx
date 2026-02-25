@@ -1,8 +1,9 @@
-import { ShoppingCart, Wrench, User, LogOut, Shield } from 'lucide-react';
+import { ShoppingCart, User, LogOut, Shield } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminCheck } from '@/hooks/useAdminCheck';
 import { useNavigate } from 'react-router-dom';
+import fiatLogo from '@/assets/fiat-logo.png';
 
 const StoreHeader = () => {
   const { totalItems, setIsOpen } = useCart();
@@ -14,12 +15,12 @@ const StoreHeader = () => {
     <header className="sticky top-0 z-50 border-b border-border bg-[hsl(0_0%_5%)] text-white backdrop-blur">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-            <Wrench className="h-5 w-5 text-primary-foreground" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary overflow-hidden">
+            <img src={fiatLogo} alt="FIAT Morón" className="h-8 w-8 object-contain" />
           </div>
           <div>
             <h1 className="font-heading text-lg font-bold leading-tight tracking-wider text-white">
-              AutoPartes
+              FIAT Morón
             </h1>
             <p className="text-xs text-white/60 font-body">Repuestos para tu vehículo</p>
           </div>
