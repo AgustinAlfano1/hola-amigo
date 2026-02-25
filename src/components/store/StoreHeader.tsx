@@ -30,7 +30,7 @@ const StoreHeader = () => {
           {user && isAdmin && (
             <button
               onClick={() => navigate('/admin')}
-              className="flex items-center gap-2 rounded-lg border border-black/30 bg-black/20 px-3 py-2 font-body text-sm text-white transition-colors hover:bg-black/30"
+              className="flex items-center gap-2 rounded-lg border-2 border-white/40 bg-black/25 px-3 py-2 font-body text-sm text-white transition-colors hover:bg-black/40"
             >
               <Shield className="h-4 w-4" />
               <span className="hidden sm:inline">Admin</span>
