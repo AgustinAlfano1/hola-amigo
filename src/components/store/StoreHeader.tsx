@@ -40,7 +40,7 @@ const StoreHeader = () => {
           {user ? (
             <button
               onClick={signOut}
-              className="flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-3 py-2 font-body text-sm text-white transition-colors hover:bg-white/20"
+              className="flex items-center gap-2 rounded-lg border border-white/20 bg-white px-3 py-2 font-body text-sm text-red-800 transition-colors hover:bg-white/90"
             >
               <LogOut className="h-4 w-4" />
               <span className="hidden sm:inline">Salir</span>
@@ -48,7 +48,7 @@ const StoreHeader = () => {
           ) : (
             <button
               onClick={() => navigate('/auth')}
-              className="flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-3 py-2 font-body text-sm text-white transition-colors hover:bg-white/20"
+              className="flex items-center gap-2 rounded-lg border border-white/20 bg-white px-3 py-2 font-body text-sm text-red-800 transition-colors hover:bg-white/90"
             >
               <User className="h-4 w-4" />
               <span className="hidden sm:inline">Ingresar</span>
@@ -57,7 +57,7 @@ const StoreHeader = () => {
 
           <button
             onClick={() => setIsOpen(true)}
-            className="relative flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-4 py-2 font-body text-sm font-medium text-white transition-colors hover:bg-primary hover:text-primary-foreground hover:border-primary"
+            className="relative flex items-center gap-2 rounded-lg border border-white/20 bg-white px-4 py-2 font-body text-sm font-medium text-red-800 transition-colors hover:bg-white/90"
           >
             <ShoppingCart className="h-4 w-4" />
             <span className="hidden sm:inline">Carrito</span>
