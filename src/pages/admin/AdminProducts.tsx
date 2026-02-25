@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Upload, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Tables } from '@/integrations/supabase/types';
 import {
@@ -29,24 +29,38 @@ const emptyProduct = {
 const AdminProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState(emptyProduct);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (searchTerm?: string) => {
     setLoading(true);
-    const { data } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+    let query = supabase.from('products').select('*').order('created_at', { ascending: false });
+    if (searchTerm && searchTerm.trim()) {
+      query = query.or(`name.ilike.%${searchTerm.trim()}%,brand.ilike.%${searchTerm.trim()}%`);
+    }
+    const { data } = await query;
     setProducts(data || []);
     setLoading(false);
   };
 
   useEffect(() => { fetchProducts(); }, []);
 
+  useEffect(() => {
+    const timeout = setTimeout(() => fetchProducts(search), 300);
+    return () => clearTimeout(timeout);
+  }, [search]);
+
   const openCreate = () => {
     setEditing(null);
     setForm(emptyProduct);
+    setImagePreview(null);
     setDialogOpen(true);
   };
 
@@ -64,7 +78,47 @@ const AdminProducts = () => {
       is_new: p.is_new,
       is_featured: p.is_featured,
     });
+    setImagePreview(p.image_url || null);
     setDialogOpen(true);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({ title: 'Error', description: 'Solo se permiten archivos de imagen.', variant: 'destructive' });
+      return;
+    }
+
+    setUploading(true);
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+
+    const { error } = await supabase.storage
+      .from('product-images')
+      .upload(fileName, file);
+
+    if (error) {
+      toast({ title: 'Error al subir imagen', description: error.message, variant: 'destructive' });
+      setUploading(false);
+      return;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from('product-images')
+      .getPublicUrl(fileName);
+
+    setForm({ ...form, image_url: urlData.publicUrl });
+    setImagePreview(urlData.publicUrl);
+    setUploading(false);
+    toast({ title: 'Imagen subida correctamente' });
+  };
+
+  const removeImage = () => {
+    setForm({ ...form, image_url: '' });
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleSave = async () => {
@@ -84,23 +138,35 @@ const AdminProducts = () => {
     }
     setSaving(false);
     setDialogOpen(false);
-    fetchProducts();
+    fetchProducts(search);
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('¿Eliminar este producto?')) return;
     const { error } = await supabase.from('products').delete().eq('id', id);
     if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    else { toast({ title: 'Producto eliminado' }); fetchProducts(); }
+    else { toast({ title: 'Producto eliminado' }); fetchProducts(search); }
   };
 
   return (
     <AdminLayout>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="font-heading text-2xl font-bold text-foreground">Productos</h2>
-        <button onClick={openCreate} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-body text-sm text-primary-foreground hover:bg-primary/90 transition-colors">
-          <Plus className="h-4 w-4" /> Nuevo producto
-        </button>
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1 sm:w-64">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Buscar producto o marca..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full rounded-lg border border-input bg-background pl-9 pr-3 py-2 font-body text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </div>
+          <button onClick={openCreate} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-body text-sm text-primary-foreground hover:bg-primary/90 transition-colors whitespace-nowrap">
+            <Plus className="h-4 w-4" /> Nuevo
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -137,7 +203,7 @@ const AdminProducts = () => {
                 </tr>
               ))}
               {products.length === 0 && (
-                <tr><td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">No hay productos cargados</td></tr>
+                <tr><td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">No se encontraron productos</td></tr>
               )}
             </tbody>
           </table>
@@ -178,10 +244,41 @@ const AdminProducts = () => {
               <label className="font-body text-sm text-muted-foreground">Descripción</label>
               <textarea className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 font-body text-sm" rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
             </div>
+
+            {/* Image upload section */}
             <div>
-              <label className="font-body text-sm text-muted-foreground">URL de imagen</label>
-              <input className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 font-body text-sm" value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} />
+              <label className="font-body text-sm text-muted-foreground">Imagen del producto</label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+              {imagePreview ? (
+                <div className="mt-1 relative inline-block">
+                  <img src={imagePreview} alt="Preview" className="h-24 w-24 rounded-lg object-cover border border-border" />
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute -top-2 -right-2 rounded-full bg-destructive p-1 text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="mt-1 flex items-center gap-2 rounded-lg border border-dashed border-border px-4 py-3 font-body text-sm text-muted-foreground hover:border-primary hover:text-foreground transition-colors disabled:opacity-50"
+                >
+                  <Upload className="h-4 w-4" />
+                  {uploading ? 'Subiendo...' : 'Subir imagen'}
+                </button>
+              )}
             </div>
+
             <div className="flex gap-4">
               <label className="flex items-center gap-2 font-body text-sm">
                 <input type="checkbox" checked={form.in_stock} onChange={(e) => setForm({ ...form, in_stock: e.target.checked })} className="rounded border-input" /> En stock
