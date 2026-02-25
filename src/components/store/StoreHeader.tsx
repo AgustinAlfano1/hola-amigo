@@ -1,11 +1,13 @@
-import { ShoppingCart, Wrench, User, LogOut } from 'lucide-react';
+import { ShoppingCart, Wrench, User, LogOut, Shield } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAdminCheck } from '@/hooks/useAdminCheck';
 import { useNavigate } from 'react-router-dom';
 
 const StoreHeader = () => {
   const { totalItems, setIsOpen } = useCart();
   const { user, signOut } = useAuth();
+  const { isAdmin } = useAdminCheck();
   const navigate = useNavigate();
 
   return (
@@ -24,6 +26,16 @@ const StoreHeader = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          {user && isAdmin && (
+            <button
+              onClick={() => navigate('/admin')}
+              className="flex items-center gap-2 rounded-lg border border-primary/50 bg-primary/20 px-3 py-2 font-body text-sm text-white transition-colors hover:bg-primary/30"
+            >
+              <Shield className="h-4 w-4" />
+              <span className="hidden sm:inline">Admin</span>
+            </button>
+          )}
+
           {user ? (
             <button
               onClick={signOut}
