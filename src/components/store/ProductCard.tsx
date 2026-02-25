@@ -14,8 +14,15 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
   return (
     <div className="card-hover group flex flex-col rounded-lg border border-border bg-card overflow-hidden" style={{ boxShadow: 'var(--shadow-card)' }}>
-      <div className="flex h-40 items-center justify-center bg-secondary text-5xl">
-        {product.image_url || '🔧'}
+      <div className="flex h-40 items-center justify-center bg-secondary text-5xl overflow-hidden">
+        {product.image_url ? (
+          <img
+            src={product.image_url}
+            alt={product.name}
+            className="h-full w-full object-cover"
+            onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.innerHTML = '🔧'; }}
+          />
+        ) : '🔧'}
       </div>
 
       <div className="flex flex-1 flex-col p-4">
