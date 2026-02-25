@@ -43,8 +43,39 @@ const AdminOrders = () => {
 
   const updateStatus = async (id: string, status: string) => {
     const { error } = await supabase.from('orders').update({ status }).eq('id', id);
-    if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    else { toast({ title: `Estado actualizado a "${statusLabels[status]}"` }); fetchOrders(); }
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({ title: `Estado actualizado a "${statusLabels[status]}"` });
+    fetchOrders();
+
+    // Send email notification for shipped/delivered
+    if (status === 'shipped' || status === 'delivered') {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData?.session?.access_token;
+        const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+        const res = await fetch(
+          `https://${projectId}.supabase.co/functions/v1/send-order-status-email`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ order_id: id, status }),
+          }
+        );
+        if (res.ok) {
+          toast({ title: `📧 Email de "${statusLabels[status]}" enviado al cliente` });
+        } else {
+          console.error('Email send failed:', await res.text());
+        }
+      } catch (e) {
+        console.error('Error sending status email:', e);
+      }
+    }
   };
 
   return (
