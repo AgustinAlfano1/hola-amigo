@@ -40,7 +40,7 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
   return (
     <div className="flex h-screen bg-background">
       {/* Sidebar */}
-      <aside className="flex w-64 flex-col bg-sidebar-background text-sidebar-foreground">
+      <aside className="flex w-64 flex-col bg-sidebar text-sidebar-foreground">
         <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary">
             <LayoutDashboard className="h-4 w-4 text-sidebar-primary-foreground" />
@@ -58,7 +58,7 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
                 className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 font-body text-sm transition-colors ${
                   active
                     ? 'bg-sidebar-primary text-sidebar-primary-foreground'
-                    : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                    : 'text-primary hover:bg-sidebar-accent hover:text-primary'
                 }`}
               >
                 <item.icon className="h-4 w-4" />
@@ -71,14 +71,14 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
         <div className="space-y-1 border-t border-sidebar-border p-3">
           <button
             onClick={() => navigate('/')}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 font-body text-sm text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 font-body text-sm text-primary transition-colors hover:bg-sidebar-accent hover:text-primary"
           >
             <ArrowLeft className="h-4 w-4" />
             Volver a la tienda
           </button>
           <button
             onClick={signOut}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 font-body text-sm text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 font-body text-sm text-primary transition-colors hover:bg-sidebar-accent hover:text-primary"
           >
             <LogOut className="h-4 w-4" />
             Cerrar sesión
