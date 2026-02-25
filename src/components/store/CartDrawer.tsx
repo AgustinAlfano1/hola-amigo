@@ -35,7 +35,7 @@ const CartDrawer = () => {
               {items.map(({ product, quantity }) => (
                 <div key={product.id} className="flex gap-3 rounded-lg border border-border bg-card p-3">
                   <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded bg-secondary text-2xl">
-                    {product.image}
+                    {product.image_url || '🔧'}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="truncate font-body text-sm font-medium text-foreground">{product.name}</h4>

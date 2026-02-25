@@ -1,6 +1,11 @@
 import { Search } from 'lucide-react';
 
-const HeroBanner = () => {
+interface HeroBannerProps {
+  searchTerm: string;
+  onSearchChange: (value: string) => void;
+}
+
+const HeroBanner = ({ searchTerm, onSearchChange }: HeroBannerProps) => {
   return (
     <section className="relative overflow-hidden border-b border-border" style={{ background: 'var(--gradient-hero)' }}>
       <div className="container mx-auto px-4 py-16 md:py-24">
@@ -15,13 +20,14 @@ const HeroBanner = () => {
             <Search className="ml-4 h-5 w-5 text-muted-foreground" />
             <input
               type="text"
+              value={searchTerm}
+              onChange={(e) => onSearchChange(e.target.value)}
               placeholder="Buscar repuestos..."
               className="w-full bg-transparent px-4 py-3 font-body text-sm text-foreground placeholder:text-muted-foreground outline-none"
             />
           </div>
         </div>
       </div>
-      {/* Decorative elements */}
       <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/5 blur-3xl" />
       <div className="absolute -bottom-10 right-40 h-40 w-40 rounded-full bg-accent/5 blur-2xl" />
     </section>

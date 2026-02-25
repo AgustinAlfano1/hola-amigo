@@ -1,29 +1,26 @@
-import { brands, categories, subCategories, type Brand, type Category } from '@/data/products';
 import { X } from 'lucide-react';
 
+const brands = ['Ford', 'Chevrolet', 'Fiat', 'Volkswagen', 'Renault', 'Peugeot', 'Toyota'];
+const categories = ['Motor', 'Frenos', 'Suspensión', 'Electricidad', 'Carrocería', 'Filtros'];
+
 interface FilterSidebarProps {
-  selectedBrand: Brand | null;
-  selectedCategory: Category | null;
-  selectedSubCategory: string | null;
-  onBrandChange: (brand: Brand | null) => void;
-  onCategoryChange: (category: Category | null) => void;
-  onSubCategoryChange: (sub: string | null) => void;
+  selectedBrand: string | null;
+  selectedCategory: string | null;
+  onBrandChange: (brand: string | null) => void;
+  onCategoryChange: (category: string | null) => void;
 }
 
 const FilterSidebar = ({
   selectedBrand,
   selectedCategory,
-  selectedSubCategory,
   onBrandChange,
   onCategoryChange,
-  onSubCategoryChange,
 }: FilterSidebarProps) => {
-  const hasFilters = selectedBrand || selectedCategory || selectedSubCategory;
+  const hasFilters = selectedBrand || selectedCategory;
 
   const clearAll = () => {
     onBrandChange(null);
     onCategoryChange(null);
-    onSubCategoryChange(null);
   };
 
   return (
@@ -37,7 +34,6 @@ const FilterSidebar = ({
         </button>
       )}
 
-      {/* Brands */}
       <div>
         <h3 className="mb-3 font-heading text-sm font-semibold tracking-wider text-foreground">
           Marcas
@@ -59,7 +55,6 @@ const FilterSidebar = ({
         </div>
       </div>
 
-      {/* Categories */}
       <div>
         <h3 className="mb-3 font-heading text-sm font-semibold tracking-wider text-foreground">
           Categorías
@@ -68,10 +63,7 @@ const FilterSidebar = ({
           {categories.map(cat => (
             <button
               key={cat}
-              onClick={() => {
-                onCategoryChange(selectedCategory === cat ? null : cat);
-                onSubCategoryChange(null);
-              }}
+              onClick={() => onCategoryChange(selectedCategory === cat ? null : cat)}
               className={`block w-full rounded-md px-3 py-2 text-left font-body text-sm transition-colors ${
                 selectedCategory === cat
                   ? 'bg-primary text-primary-foreground'
@@ -83,30 +75,6 @@ const FilterSidebar = ({
           ))}
         </div>
       </div>
-
-      {/* Subcategories */}
-      {selectedCategory && (
-        <div>
-          <h3 className="mb-3 font-heading text-sm font-semibold tracking-wider text-foreground">
-            Subcategorías
-          </h3>
-          <div className="space-y-1">
-            {subCategories[selectedCategory].map(sub => (
-              <button
-                key={sub}
-                onClick={() => onSubCategoryChange(selectedSubCategory === sub ? null : sub)}
-                className={`block w-full rounded-md px-3 py-2 text-left font-body text-sm transition-colors ${
-                  selectedSubCategory === sub
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
-                }`}
-              >
-                {sub}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
     </aside>
   );
 };
