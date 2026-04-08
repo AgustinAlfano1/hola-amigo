@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
 
 interface ParsedProduct {
+  sourceRow: number;
   name: string;
   price: number;
   brand?: string;
@@ -28,6 +29,29 @@ interface ImportResult {
 const REQUIRED_COLUMNS = ['name', 'price'];
 const OPTIONAL_COLUMNS = ['brand', 'category', 'description', 'original_price', 'stock_quantity', 'codigo', 'is_new', 'is_featured', 'image_url'];
 const ALL_COLUMNS = [...REQUIRED_COLUMNS, ...OPTIONAL_COLUMNS];
+
+function parseLocalizedNumber(value: string): number {
+  const cleaned = value.replace(/[^0-9,.-]/g, '').trim();
+  if (!cleaned) return NaN;
+
+  const lastComma = cleaned.lastIndexOf(',');
+  const lastDot = cleaned.lastIndexOf('.');
+  let normalized = cleaned;
+
+  if (lastComma !== -1 && lastDot !== -1) {
+    normalized = lastComma > lastDot
+      ? cleaned.replace(/\./g, '').replace(',', '.')
+      : cleaned.replace(/,/g, '');
+  } else if (lastComma !== -1) {
+    const decimalDigits = cleaned.length - lastComma - 1;
+    normalized = decimalDigits <= 2 ? cleaned.replace(',', '.') : cleaned.replace(/,/g, '');
+  } else if (lastDot !== -1) {
+    const decimalDigits = cleaned.length - lastDot - 1;
+    normalized = decimalDigits <= 2 ? cleaned : cleaned.replace(/\./g, '');
+  }
+
+  return parseFloat(normalized);
+}
 
 function parseCSV(text: string): { headers: string[]; rows: string[][] } {
   const lines = text.split(/\r?\n/).filter((l) => l.trim() !== '');
@@ -68,15 +92,14 @@ function parseCSV(text: string): { headers: string[]; rows: string[][] } {
   return { headers, rows };
 }
 
-function mapRow(headers: string[], row: string[]): ParsedProduct | null {
+function mapRow(headers: string[], row: string[], sourceRow: number): ParsedProduct | null {
   const obj: Record<string, string> = {};
   headers.forEach((h, i) => {
     obj[h] = row[i] || '';
   });
 
   const name = obj['name'] || obj['nombre'] || '';
-  const priceStr = (obj['price'] || obj['precio'] || '').replace(/[^0-9.,]/g, '').replace(',', '.');
-  const price = parseFloat(priceStr);
+  const price = parseLocalizedNumber(obj['price'] || obj['precio'] || '');
 
   if (!name || isNaN(price) || price <= 0) return null;
 
@@ -88,13 +111,13 @@ function mapRow(headers: string[], row: string[]): ParsedProduct | null {
     return undefined;
   };
 
-  const origPriceStr = (obj['original_price'] || obj['precio_original'] || '').replace(/[^0-9.,]/g, '').replace(',', '.');
-  const origPrice = parseFloat(origPriceStr);
+  const origPrice = parseLocalizedNumber(obj['original_price'] || obj['precio_original'] || '');
 
   const stockStr = (obj['stock_quantity'] || obj['stock'] || obj['cantidad_stock'] || '').replace(/[^0-9]/g, '');
   const stockQty = stockStr ? parseInt(stockStr) : 0;
 
   return {
+    sourceRow,
     name,
     price,
     brand: obj['brand'] || obj['marca'] || undefined,
@@ -106,6 +129,23 @@ function mapRow(headers: string[], row: string[]): ParsedProduct | null {
     is_new: parseBool(obj['is_new'] || obj['nuevo']) ?? false,
     is_featured: parseBool(obj['is_featured'] || obj['destacado']) ?? false,
     image_url: obj['image_url'] || obj['imagen'] || undefined,
+  };
+}
+
+function buildInsertPayload(product: ParsedProduct) {
+  return {
+    name: product.name,
+    price: product.price,
+    brand: product.brand || null,
+    category: product.category || null,
+    description: product.description || null,
+    original_price: product.original_price || null,
+    stock_quantity: product.stock_quantity ?? 0,
+    codigo: product.codigo || null,
+    in_stock: (product.stock_quantity ?? 0) > 0,
+    is_new: product.is_new ?? false,
+    is_featured: product.is_featured ?? false,
+    image_url: product.image_url || null,
   };
 }
 
@@ -165,12 +205,13 @@ const AdminImportCSV = () => {
       const products: ParsedProduct[] = [];
       const invalid: number[] = [];
 
-      rows.forEach((row, i) => {
-        const p = mapRow(headers, row);
+        rows.forEach((row, i) => {
+          const sourceRow = i + 2;
+          const p = mapRow(headers, row, sourceRow);
         if (p) products.push(p);
         else {
-          invalid.push(i + 2);
-          console.log(`Row ${i + 2} invalid:`, row);
+          invalid.push(sourceRow);
+          console.log(`Row ${sourceRow} invalid:`, row);
         }
       });
 
@@ -192,27 +233,30 @@ const AdminImportCSV = () => {
 
     for (let i = 0; i < preview.length; i += BATCH_SIZE) {
       const batch = preview.slice(i, i + BATCH_SIZE);
-      const { error } = await supabase.from('products').insert(
-        batch.map((p) => ({
-          name: p.name,
-          price: p.price,
-          brand: p.brand || null,
-          category: p.category || null,
-          description: p.description || null,
-          original_price: p.original_price || null,
-          stock_quantity: p.stock_quantity ?? 0,
-          codigo: p.codigo || null,
-          in_stock: (p.stock_quantity ?? 0) > 0,
-          is_new: p.is_new ?? false,
-          is_featured: p.is_featured ?? false,
-          image_url: p.image_url || null,
-        }))
-      );
+      const { error } = await supabase.from('products').insert(batch.map(buildInsertPayload));
 
       if (error) {
-        batch.forEach((p, j) => {
-          errors.push({ row: i + j + 2, name: p.name, error: error.message });
+        console.error('Batch import failed, retrying rows individually', {
+          firstRow: batch[0]?.sourceRow,
+          lastRow: batch[batch.length - 1]?.sourceRow,
+          error: error.message,
         });
+
+        for (const product of batch) {
+          const { error: rowError } = await supabase.from('products').insert(buildInsertPayload(product));
+
+          if (rowError) {
+            console.error('Row import failed', {
+              row: product.sourceRow,
+              name: product.name,
+              error: rowError.message,
+              payload: buildInsertPayload(product),
+            });
+            errors.push({ row: product.sourceRow, name: product.name, error: rowError.message });
+          } else {
+            success += 1;
+          }
+        }
       } else {
         success += batch.length;
       }
