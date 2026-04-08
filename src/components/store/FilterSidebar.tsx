@@ -14,8 +14,8 @@ const FilterSidebar = ({
   selectedCategory,
   onBrandChange,
   onCategoryChange,
-  brands,
-  categories,
+  brands = [],
+  categories = [],
 }: FilterSidebarProps) => {
   const hasFilters = selectedBrand || selectedCategory;
 
