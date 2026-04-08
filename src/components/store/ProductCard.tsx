@@ -51,7 +51,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
                 {formatPrice(product.price)}
               </span>
             </div>
-            {!product.in_stock && (
+            {(product.stock_quantity !== undefined ? product.stock_quantity <= 0 : !product.in_stock) && (
               <span className="flex items-center gap-1 font-body text-[10px] text-destructive">
                 <AlertCircle className="h-3 w-3" /> Sin stock
               </span>
@@ -60,7 +60,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
           <button
             onClick={() => addToCart(product)}
-            disabled={!product.in_stock}
+            disabled={product.stock_quantity !== undefined ? product.stock_quantity <= 0 : !product.in_stock}
             className="mt-3 flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 font-body text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <ShoppingCart className="h-4 w-4" />
