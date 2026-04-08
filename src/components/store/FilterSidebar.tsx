@@ -1,27 +1,43 @@
 import { X } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface FilterSidebarProps {
-  selectedBrand: string | null;
-  selectedCategory: string | null;
-  onBrandChange: (brand: string | null) => void;
-  onCategoryChange: (category: string | null) => void;
+  selectedBrands: string[];
+  selectedCategories: string[];
+  onBrandsChange: (brands: string[]) => void;
+  onCategoriesChange: (categories: string[]) => void;
   brands: string[];
   categories: string[];
 }
 
 const FilterSidebar = ({
-  selectedBrand,
-  selectedCategory,
-  onBrandChange,
-  onCategoryChange,
+  selectedBrands,
+  selectedCategories,
+  onBrandsChange,
+  onCategoriesChange,
   brands = [],
   categories = [],
 }: FilterSidebarProps) => {
-  const hasFilters = selectedBrand || selectedCategory;
+  const hasFilters = selectedBrands.length > 0 || selectedCategories.length > 0;
 
   const clearAll = () => {
-    onBrandChange(null);
-    onCategoryChange(null);
+    onBrandsChange([]);
+    onCategoriesChange([]);
+  };
+
+  const toggleBrand = (brand: string) => {
+    const next = selectedBrands.includes(brand)
+      ? selectedBrands.filter(b => b !== brand)
+      : [...selectedBrands, brand];
+    onBrandsChange(next);
+    // Remove categories that are no longer valid will be handled by parent
+  };
+
+  const toggleCategory = (cat: string) => {
+    const next = selectedCategories.includes(cat)
+      ? selectedCategories.filter(c => c !== cat)
+      : [...selectedCategories, cat];
+    onCategoriesChange(next);
   };
 
   return (
@@ -39,19 +55,20 @@ const FilterSidebar = ({
         <h3 className="mb-3 font-heading text-sm font-semibold tracking-wider text-foreground">
           Marcas
         </h3>
-        <div className="flex flex-wrap gap-2">
+        <div className="space-y-2">
           {brands.map(brand => (
-            <button
+            <label
               key={brand}
-              onClick={() => onBrandChange(selectedBrand === brand ? null : brand)}
-              className={`rounded-md border px-3 py-1.5 font-body text-xs font-medium transition-colors ${
-                selectedBrand === brand
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-border bg-secondary text-secondary-foreground hover:border-primary/50'
-              }`}
+              className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 font-body text-sm transition-colors hover:bg-secondary"
             >
-              {brand}
-            </button>
+              <Checkbox
+                checked={selectedBrands.includes(brand)}
+                onCheckedChange={() => toggleBrand(brand)}
+              />
+              <span className={selectedBrands.includes(brand) ? 'font-medium text-foreground' : 'text-muted-foreground'}>
+                {brand}
+              </span>
+            </label>
           ))}
         </div>
       </div>
@@ -60,21 +77,28 @@ const FilterSidebar = ({
         <h3 className="mb-3 font-heading text-sm font-semibold tracking-wider text-foreground">
           Categorías
         </h3>
-        <div className="space-y-1">
-          {categories.map(cat => (
-            <button
-              key={cat}
-              onClick={() => onCategoryChange(selectedCategory === cat ? null : cat)}
-              className={`block w-full rounded-md px-3 py-2 text-left font-body text-sm transition-colors ${
-                selectedCategory === cat
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
+        {categories.length === 0 ? (
+          <p className="px-2 font-body text-xs text-muted-foreground">
+            Seleccioná una marca para ver categorías
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {categories.map(cat => (
+              <label
+                key={cat}
+                className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 font-body text-sm transition-colors hover:bg-secondary"
+              >
+                <Checkbox
+                  checked={selectedCategories.includes(cat)}
+                  onCheckedChange={() => toggleCategory(cat)}
+                />
+                <span className={selectedCategories.includes(cat) ? 'font-medium text-foreground' : 'text-muted-foreground'}>
+                  {cat}
+                </span>
+              </label>
+            ))}
+          </div>
+        )}
       </div>
     </aside>
   );

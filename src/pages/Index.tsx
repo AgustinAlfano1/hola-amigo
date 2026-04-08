@@ -11,11 +11,10 @@ import CartDrawer from '@/components/store/CartDrawer';
 const Index = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
-  const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Handle MP payment return
   useEffect(() => {
     const payment = searchParams.get('payment');
     if (payment) {
@@ -26,7 +25,6 @@ const Index = () => {
       } else if (payment === 'pending') {
         toast({ title: 'Pago pendiente', description: 'Tu pago está siendo procesado.' });
       }
-      // Clean URL
       searchParams.delete('payment');
       searchParams.delete('order_id');
       setSearchParams(searchParams, { replace: true });
@@ -40,18 +38,33 @@ const Index = () => {
     return Array.from(set).sort();
   }, [products]);
 
-  const categories = useMemo(() => {
-    const set = new Set(products.map(p => p.category).filter(Boolean) as string[]);
+  // Categories filtered by selected brands
+  const availableCategories = useMemo(() => {
+    const pool = selectedBrands.length > 0
+      ? products.filter(p => p.brand && selectedBrands.includes(p.brand))
+      : products;
+    const set = new Set(pool.map(p => p.category).filter(Boolean) as string[]);
     return Array.from(set).sort();
-  }, [products]);
+  }, [products, selectedBrands]);
+
+  // When brands change, remove categories that are no longer available
+  const handleBrandsChange = (newBrands: string[]) => {
+    setSelectedBrands(newBrands);
+    // Recompute valid categories for new brand selection
+    const pool = newBrands.length > 0
+      ? products.filter(p => p.brand && newBrands.includes(p.brand))
+      : products;
+    const validCats = new Set(pool.map(p => p.category).filter(Boolean) as string[]);
+    setSelectedCategories(prev => prev.filter(c => validCats.has(c)));
+  };
 
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
-      if (selectedBrand && p.brand !== selectedBrand) return false;
-      if (selectedCategory && p.category !== selectedCategory) return false;
+      if (selectedBrands.length > 0 && (!p.brand || !selectedBrands.includes(p.brand))) return false;
+      if (selectedCategories.length > 0 && (!p.category || !selectedCategories.includes(p.category))) return false;
       return true;
     });
-  }, [products, selectedBrand, selectedCategory]);
+  }, [products, selectedBrands, selectedCategories]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -61,12 +74,12 @@ const Index = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col gap-8 lg:flex-row">
           <FilterSidebar
-            selectedBrand={selectedBrand}
-            selectedCategory={selectedCategory}
-            onBrandChange={setSelectedBrand}
-            onCategoryChange={setSelectedCategory}
+            selectedBrands={selectedBrands}
+            selectedCategories={selectedCategories}
+            onBrandsChange={handleBrandsChange}
+            onCategoriesChange={setSelectedCategories}
             brands={brands}
-            categories={categories}
+            categories={availableCategories}
           />
 
           <div className="flex-1">
