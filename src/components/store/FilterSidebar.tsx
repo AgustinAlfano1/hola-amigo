@@ -1,13 +1,12 @@
 import { X } from 'lucide-react';
 
-const brands = ['Ford', 'Chevrolet', 'Fiat', 'Volkswagen', 'Renault', 'Peugeot', 'Toyota'];
-const categories = ['Motor', 'Frenos', 'Suspensión', 'Electricidad', 'Carrocería', 'Filtros'];
-
 interface FilterSidebarProps {
   selectedBrand: string | null;
   selectedCategory: string | null;
   onBrandChange: (brand: string | null) => void;
   onCategoryChange: (category: string | null) => void;
+  brands: string[];
+  categories: string[];
 }
 
 const FilterSidebar = ({
@@ -15,6 +14,8 @@ const FilterSidebar = ({
   selectedCategory,
   onBrandChange,
   onCategoryChange,
+  brands,
+  categories,
 }: FilterSidebarProps) => {
   const hasFilters = selectedBrand || selectedCategory;
 
