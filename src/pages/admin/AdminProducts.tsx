@@ -21,6 +21,8 @@ const emptyProduct = {
   price: 0,
   original_price: null as number | null,
   image_url: '',
+  stock_quantity: 0,
+  codigo: '',
   in_stock: true,
   is_new: false,
   is_featured: false,
@@ -74,6 +76,8 @@ const AdminProducts = () => {
       price: p.price,
       original_price: p.original_price,
       image_url: p.image_url || '',
+      stock_quantity: p.stock_quantity ?? 0,
+      codigo: p.codigo || '',
       in_stock: p.in_stock,
       is_new: p.is_new,
       is_featured: p.is_featured,
@@ -127,12 +131,16 @@ const AdminProducts = () => {
       return;
     }
     setSaving(true);
+    const saveData = {
+      ...form,
+      in_stock: form.stock_quantity > 0,
+    };
     if (editing) {
-      const { error } = await supabase.from('products').update(form).eq('id', editing.id);
+      const { error } = await supabase.from('products').update(saveData).eq('id', editing.id);
       if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
       else toast({ title: 'Producto actualizado' });
     } else {
-      const { error } = await supabase.from('products').insert(form);
+      const { error } = await supabase.from('products').insert(saveData);
       if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
       else toast({ title: 'Producto creado' });
     }
@@ -176,6 +184,7 @@ const AdminProducts = () => {
           <table className="w-full font-body text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/50">
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Código</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Nombre</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Marca</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Categoría</th>
@@ -187,12 +196,15 @@ const AdminProducts = () => {
             <tbody>
               {products.map((p) => (
                 <tr key={p.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
+                  <td className="px-4 py-3 text-muted-foreground font-mono text-xs">{p.codigo || '—'}</td>
                   <td className="px-4 py-3 font-medium text-card-foreground">{p.name}</td>
                   <td className="px-4 py-3 text-muted-foreground">{p.brand || '—'}</td>
                   <td className="px-4 py-3 text-muted-foreground">{p.category || '—'}</td>
                   <td className="px-4 py-3 text-right text-card-foreground">${p.price.toLocaleString('es-AR')}</td>
                   <td className="px-4 py-3 text-center">
-                    <span className={`inline-block h-2.5 w-2.5 rounded-full ${p.in_stock ? 'bg-green-500' : 'bg-red-500'}`} />
+                    <span className={`font-body text-sm font-medium ${p.stock_quantity > 0 ? 'text-green-600' : 'text-destructive'}`}>
+                      {p.stock_quantity}
+                    </span>
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex justify-end gap-1">
@@ -203,7 +215,7 @@ const AdminProducts = () => {
                 </tr>
               ))}
               {products.length === 0 && (
-                <tr><td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">No se encontraron productos</td></tr>
+                <tr><td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">No se encontraron productos</td></tr>
               )}
             </tbody>
           </table>
@@ -230,7 +242,11 @@ const AdminProducts = () => {
                 <input className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 font-body text-sm" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="font-body text-sm text-muted-foreground">Código (alfanumérico, máx 50 caracteres)</label>
+              <input className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 font-body text-sm" maxLength={50} value={form.codigo} onChange={(e) => setForm({ ...form, codigo: e.target.value })} placeholder="Ej: FLT-001-UNO" />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
               <div>
                 <label className="font-body text-sm text-muted-foreground">Precio *</label>
                 <input type="number" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 font-body text-sm" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} />
@@ -238,6 +254,10 @@ const AdminProducts = () => {
               <div>
                 <label className="font-body text-sm text-muted-foreground">Precio original</label>
                 <input type="number" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 font-body text-sm" value={form.original_price || ''} onChange={(e) => setForm({ ...form, original_price: e.target.value ? Number(e.target.value) : null })} />
+              </div>
+              <div>
+                <label className="font-body text-sm text-muted-foreground">Stock (cantidad)</label>
+                <input type="number" min="0" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 font-body text-sm" value={form.stock_quantity} onChange={(e) => setForm({ ...form, stock_quantity: Math.max(0, parseInt(e.target.value) || 0) })} />
               </div>
             </div>
             <div>
@@ -280,9 +300,6 @@ const AdminProducts = () => {
             </div>
 
             <div className="flex gap-4">
-              <label className="flex items-center gap-2 font-body text-sm">
-                <input type="checkbox" checked={form.in_stock} onChange={(e) => setForm({ ...form, in_stock: e.target.checked })} className="rounded border-input" /> En stock
-              </label>
               <label className="flex items-center gap-2 font-body text-sm">
                 <input type="checkbox" checked={form.is_new} onChange={(e) => setForm({ ...form, is_new: e.target.checked })} className="rounded border-input" /> Nuevo
               </label>
