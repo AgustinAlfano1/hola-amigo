@@ -12,7 +12,8 @@ interface ParsedProduct {
   category?: string;
   description?: string;
   original_price?: number | null;
-  in_stock?: boolean;
+  stock_quantity?: number;
+  codigo?: string;
   is_new?: boolean;
   is_featured?: boolean;
   image_url?: string;
@@ -25,7 +26,7 @@ interface ImportResult {
 }
 
 const REQUIRED_COLUMNS = ['name', 'price'];
-const OPTIONAL_COLUMNS = ['brand', 'category', 'description', 'original_price', 'in_stock', 'is_new', 'is_featured', 'image_url'];
+const OPTIONAL_COLUMNS = ['brand', 'category', 'description', 'original_price', 'stock_quantity', 'codigo', 'is_new', 'is_featured', 'image_url'];
 const ALL_COLUMNS = [...REQUIRED_COLUMNS, ...OPTIONAL_COLUMNS];
 
 function parseCSV(text: string): { headers: string[]; rows: string[][] } {
@@ -90,6 +91,9 @@ function mapRow(headers: string[], row: string[]): ParsedProduct | null {
   const origPriceStr = (obj['original_price'] || obj['precio_original'] || '').replace(/[^0-9.,]/g, '').replace(',', '.');
   const origPrice = parseFloat(origPriceStr);
 
+  const stockStr = (obj['stock_quantity'] || obj['stock'] || obj['cantidad_stock'] || '').replace(/[^0-9]/g, '');
+  const stockQty = stockStr ? parseInt(stockStr) : 0;
+
   return {
     name,
     price,
@@ -97,19 +101,20 @@ function mapRow(headers: string[], row: string[]): ParsedProduct | null {
     category: obj['category'] || obj['categoria'] || obj['categoría'] || undefined,
     description: obj['description'] || obj['descripcion'] || obj['descripción'] || undefined,
     original_price: isNaN(origPrice) ? null : origPrice,
-    in_stock: parseBool(obj['in_stock'] || obj['stock']) ?? true,
+    stock_quantity: stockQty,
+    codigo: (obj['codigo'] || obj['código'] || obj['code'] || '').substring(0, 50) || undefined,
     is_new: parseBool(obj['is_new'] || obj['nuevo']) ?? false,
     is_featured: parseBool(obj['is_featured'] || obj['destacado']) ?? false,
     image_url: obj['image_url'] || obj['imagen'] || undefined,
   };
 }
 
-const SAMPLE_CSV = `name,price,brand,category,description,original_price,in_stock,is_new,is_featured
-"Filtro de aceite Fiat Uno",12500,Fiat,Filtros,"Compatible con Uno 2010-2020",15000,true,false,false
-"Pastillas de freno Palio",8900,Fiat,Frenos,"Juego delantero",10500,true,true,false
-"Correa de distribución Siena",22000,Fiat,Motor,"Kit completo con tensor",,true,false,true
-"Amortiguador trasero Cronos",35000,Fiat,Suspensión,"Par de amortiguadores",42000,true,true,true
-"Bujía NGK Punto",3200,Fiat,Encendido,"Pack x4 bujías",,true,false,false`;
+const SAMPLE_CSV = `name,price,brand,category,description,original_price,stock_quantity,codigo,is_new,is_featured
+"Filtro de aceite Fiat Uno",12500,Fiat,Filtros,"Compatible con Uno 2010-2020",15000,25,FLT-001,false,false
+"Pastillas de freno Palio",8900,Fiat,Frenos,"Juego delantero",10500,10,FRN-002,true,false
+"Correa de distribución Siena",22000,Fiat,Motor,"Kit completo con tensor",,5,MTR-003,false,true
+"Amortiguador trasero Cronos",35000,Fiat,Suspensión,"Par de amortiguadores",42000,8,SUS-004,true,true
+"Bujía NGK Punto",3200,Fiat,Encendido,"Pack x4 bujías",,50,ENC-005,false,false`;
 
 const AdminImportCSV = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -187,7 +192,9 @@ const AdminImportCSV = () => {
           category: p.category || null,
           description: p.description || null,
           original_price: p.original_price || null,
-          in_stock: p.in_stock ?? true,
+          stock_quantity: p.stock_quantity ?? 0,
+          codigo: p.codigo || null,
+          in_stock: (p.stock_quantity ?? 0) > 0,
           is_new: p.is_new ?? false,
           is_featured: p.is_featured ?? false,
           image_url: p.image_url || null,
@@ -256,7 +263,7 @@ const AdminImportCSV = () => {
             <strong className="text-card-foreground">Columnas obligatorias:</strong> <code className="rounded bg-muted px-1.5 py-0.5 text-xs">name</code> (o <code className="rounded bg-muted px-1.5 py-0.5 text-xs">nombre</code>), <code className="rounded bg-muted px-1.5 py-0.5 text-xs">price</code> (o <code className="rounded bg-muted px-1.5 py-0.5 text-xs">precio</code>)
           </p>
           <p>
-            <strong className="text-card-foreground">Columnas opcionales:</strong> brand/marca, category/categoría, description/descripción, original_price/precio_original, in_stock/stock, is_new/nuevo, is_featured/destacado, image_url/imagen
+            <strong className="text-card-foreground">Columnas opcionales:</strong> brand/marca, category/categoría, description/descripción, original_price/precio_original, stock_quantity/stock/cantidad_stock, codigo/código/code, is_new/nuevo, is_featured/destacado, image_url/imagen
           </p>
           <p>Separador: <strong className="text-card-foreground">coma (,) o punto y coma (;)</strong>. Los booleanos aceptan: true/false, si/no, 1/0.</p>
         </div>
@@ -329,6 +336,7 @@ const AdminImportCSV = () => {
                   <thead>
                     <tr className="border-b border-border bg-muted/50 sticky top-0">
                       <th className="px-3 py-2 text-left font-medium text-muted-foreground">#</th>
+                      <th className="px-3 py-2 text-left font-medium text-muted-foreground">Código</th>
                       <th className="px-3 py-2 text-left font-medium text-muted-foreground">Nombre</th>
                       <th className="px-3 py-2 text-left font-medium text-muted-foreground">Marca</th>
                       <th className="px-3 py-2 text-left font-medium text-muted-foreground">Categoría</th>
@@ -340,12 +348,15 @@ const AdminImportCSV = () => {
                     {preview.slice(0, 100).map((p, i) => (
                       <tr key={i} className="border-b border-border last:border-0">
                         <td className="px-3 py-2 text-muted-foreground">{i + 1}</td>
+                        <td className="px-3 py-2 text-muted-foreground font-mono text-xs">{p.codigo || '—'}</td>
                         <td className="px-3 py-2 text-card-foreground">{p.name}</td>
                         <td className="px-3 py-2 text-muted-foreground">{p.brand || '—'}</td>
                         <td className="px-3 py-2 text-muted-foreground">{p.category || '—'}</td>
                         <td className="px-3 py-2 text-right text-card-foreground">${p.price.toLocaleString('es-AR')}</td>
                         <td className="px-3 py-2 text-center">
-                          <span className={`inline-block h-2.5 w-2.5 rounded-full ${p.in_stock ? 'bg-green-500' : 'bg-red-500'}`} />
+                          <span className={`font-body text-sm font-medium ${(p.stock_quantity ?? 0) > 0 ? 'text-green-600' : 'text-destructive'}`}>
+                            {p.stock_quantity ?? 0}
+                          </span>
                         </td>
                       </tr>
                     ))}
