@@ -35,6 +35,16 @@ const Index = () => {
 
   const { data: products = [], isLoading } = useProducts(searchTerm);
 
+  const brands = useMemo(() => {
+    const set = new Set(products.map(p => p.brand).filter(Boolean) as string[]);
+    return Array.from(set).sort();
+  }, [products]);
+
+  const categories = useMemo(() => {
+    const set = new Set(products.map(p => p.category).filter(Boolean) as string[]);
+    return Array.from(set).sort();
+  }, [products]);
+
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
       if (selectedBrand && p.brand !== selectedBrand) return false;
@@ -55,6 +65,8 @@ const Index = () => {
             selectedCategory={selectedCategory}
             onBrandChange={setSelectedBrand}
             onCategoryChange={setSelectedCategory}
+            brands={brands}
+            categories={categories}
           />
 
           <div className="flex-1">
