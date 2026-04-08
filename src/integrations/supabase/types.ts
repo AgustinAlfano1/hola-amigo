@@ -121,6 +121,7 @@ export type Database = {
         Row: {
           brand: string | null
           category: string | null
+          codigo: string | null
           created_at: string
           description: string | null
           id: string
@@ -131,11 +132,13 @@ export type Database = {
           name: string
           original_price: number | null
           price: number
+          stock_quantity: number
           updated_at: string
         }
         Insert: {
           brand?: string | null
           category?: string | null
+          codigo?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -146,11 +149,13 @@ export type Database = {
           name: string
           original_price?: number | null
           price?: number
+          stock_quantity?: number
           updated_at?: string
         }
         Update: {
           brand?: string | null
           category?: string | null
+          codigo?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -161,6 +166,7 @@ export type Database = {
           name?: string
           original_price?: number | null
           price?: number
+          stock_quantity?: number
           updated_at?: string
         }
         Relationships: []
