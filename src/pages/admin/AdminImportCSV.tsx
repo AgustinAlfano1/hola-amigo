@@ -141,8 +141,13 @@ const AdminImportCSV = () => {
 
     const reader = new FileReader();
     reader.onload = (ev) => {
-      const text = ev.target?.result as string;
+      let text = ev.target?.result as string;
+      // Remove BOM if present
+      if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
       const { headers, rows } = parseCSV(text);
+
+      console.log('CSV headers:', headers);
+      console.log('CSV rows count:', rows.length);
 
       const hasName = headers.some((h) => ['name', 'nombre'].includes(h));
       const hasPrice = headers.some((h) => ['price', 'precio'].includes(h));
@@ -150,7 +155,7 @@ const AdminImportCSV = () => {
       if (!hasName || !hasPrice) {
         toast({
           title: 'Columnas faltantes',
-          description: 'El archivo debe tener al menos las columnas "name" (o "nombre") y "price" (o "precio").',
+          description: `Encabezados encontrados: ${headers.join(', ')}. Se requiere "name" (o "nombre") y "price" (o "precio").`,
           variant: 'destructive',
         });
         setFile(null);
@@ -163,13 +168,16 @@ const AdminImportCSV = () => {
       rows.forEach((row, i) => {
         const p = mapRow(headers, row);
         if (p) products.push(p);
-        else invalid.push(i + 2); // +2 for header + 0-index
+        else {
+          invalid.push(i + 2);
+          console.log(`Row ${i + 2} invalid:`, row);
+        }
       });
 
       setPreview(products);
       setInvalidRows(invalid);
     };
-    reader.readAsText(f);
+    reader.readAsText(f, 'UTF-8');
   };
 
   const handleImport = async () => {
