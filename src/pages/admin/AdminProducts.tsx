@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { Plus, Pencil, Trash2, Search, Upload, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Upload, X, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Tables } from '@/integrations/supabase/types';
 import {
@@ -156,6 +156,45 @@ const AdminProducts = () => {
     else { toast({ title: 'Producto eliminado' }); fetchProducts(search); }
   };
 
+
+  const handleExportCSV = async () => {
+    const { data } = await supabase
+      .from('products')
+      .select('*')
+      .gt('stock_quantity', 0)
+      .order('brand', { ascending: true });
+
+    if (!data || data.length === 0) {
+      toast({ title: 'No hay productos activos para exportar', variant: 'destructive' });
+      return;
+    }
+
+    const headers = ['Código', 'Nombre', 'Descripción', 'Marca', 'Categoría', 'Precio', 'Precio Original', 'Stock'];
+    const rows = data.map(p => [
+      p.codigo || '',
+      p.name,
+      p.description || '',
+      p.brand || '',
+      p.category || '',
+      p.price,
+      p.original_price || '',
+      p.stock_quantity,
+    ]);
+
+    const csv = [headers, ...rows]
+      .map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `productos-activos-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: `✅ ${data.length} productos exportados` });
+  };
+
   return (
     <AdminLayout>
       <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center sm:justify-between">
@@ -171,6 +210,12 @@ const AdminProducts = () => {
               className="w-full rounded-lg border border-input bg-background pl-9 pr-3 py-2 font-body text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
+          <button
+            onClick={handleExportCSV}
+            className="flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2 font-body text-sm text-foreground hover:bg-muted transition-colors whitespace-nowrap"
+          >
+            <Download className="h-4 w-4" /> Exportar activos
+          </button>
           <button onClick={openCreate} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-body text-sm text-primary-foreground hover:bg-primary/90 transition-colors whitespace-nowrap">
             <Plus className="h-4 w-4" /> Nuevo
           </button>
