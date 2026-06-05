@@ -89,30 +89,20 @@ const AdminProducts = () => {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     if (!file.type.startsWith('image/')) {
       toast({ title: 'Error', description: 'Solo se permiten archivos de imagen.', variant: 'destructive' });
       return;
     }
-
     setUploading(true);
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-
-    const { error } = await supabase.storage
-      .from('product-images')
-      .upload(fileName, file);
-
+    const { error } = await supabase.storage.from('product-images').upload(fileName, file);
     if (error) {
       toast({ title: 'Error al subir imagen', description: error.message, variant: 'destructive' });
       setUploading(false);
       return;
     }
-
-    const { data: urlData } = supabase.storage
-      .from('product-images')
-      .getPublicUrl(fileName);
-
+    const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(fileName);
     setForm({ ...form, image_url: urlData.publicUrl });
     setImagePreview(urlData.publicUrl);
     setUploading(false);
@@ -125,16 +115,51 @@ const AdminProducts = () => {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  const handleExportCSV = async () => {
+    const { data } = await supabase
+      .from('products')
+      .select('*')
+      .order('brand', { ascending: true });
+
+    if (!data || data.length === 0) {
+      toast({ title: 'No hay productos para exportar', variant: 'destructive' });
+      return;
+    }
+
+    const headers = ['Código', 'Nombre', 'Descripción', 'Marca', 'Categoría', 'Precio', 'Precio Original', 'Stock'];
+    const rows = data.map(p => [
+      p.codigo || '',
+      p.name,
+      p.description || '',
+      p.brand || '',
+      p.category || '',
+      p.price,
+      p.original_price || '',
+      p.stock_quantity,
+    ]);
+
+    const csvRows = [headers, ...rows].map(row =>
+      row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')
+    );
+    const csv = csvRows.join('\n');
+
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `productos-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: `✅ ${data.length} productos exportados` });
+  };
+
   const handleSave = async () => {
     if (!form.name || form.price <= 0) {
       toast({ title: 'Error', description: 'Nombre y precio son obligatorios.', variant: 'destructive' });
       return;
     }
     setSaving(true);
-    const saveData = {
-      ...form,
-      in_stock: form.stock_quantity > 0,
-    };
+    const saveData = { ...form, in_stock: form.stock_quantity > 0 };
     if (editing) {
       const { error } = await supabase.from('products').update(saveData).eq('id', editing.id);
       if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
@@ -154,45 +179,6 @@ const AdminProducts = () => {
     const { error } = await supabase.from('products').delete().eq('id', id);
     if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
     else { toast({ title: 'Producto eliminado' }); fetchProducts(search); }
-  };
-
-
-  const handleExportCSV = async () => {
-    const { data } = await supabase
-      .from('products')
-      .select('*')
-      
-      .order('brand', { ascending: true });
-
-    if (!data || data.length === 0) {
-      toast({ title: 'No hay productos activos para exportar', variant: 'destructive' });
-      return;
-    }
-
-    const headers = ['Código', 'Nombre', 'Descripción', 'Marca', 'Categoría', 'Precio', 'Precio Original', 'Stock'];
-    const rows = data.map(p => [
-      p.codigo || '',
-      p.name,
-      p.description || '',
-      p.brand || '',
-      p.category || '',
-      p.price,
-      p.original_price || '',
-      p.stock_quantity,
-    ]);
-
-    const csv = [headers, ...rows]
-      .map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
-      .join('\n');
-
-    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `productos-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast({ title: `✅ ${data.length} productos exportados` });
   };
 
   return (
@@ -288,7 +274,7 @@ const AdminProducts = () => {
               </div>
             </div>
             <div>
-              <label className="font-body text-sm text-muted-foreground">Código (alfanumérico, máx 50 caracteres)</label>
+              <label className="font-body text-sm text-muted-foreground">Código</label>
               <input className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 font-body text-sm" maxLength={50} value={form.codigo} onChange={(e) => setForm({ ...form, codigo: e.target.value })} placeholder="Ej: FLT-001-UNO" />
             </div>
             <div className="grid grid-cols-3 gap-3">
@@ -301,7 +287,7 @@ const AdminProducts = () => {
                 <input type="number" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 font-body text-sm" value={form.original_price || ''} onChange={(e) => setForm({ ...form, original_price: e.target.value ? Number(e.target.value) : null })} />
               </div>
               <div>
-                <label className="font-body text-sm text-muted-foreground">Stock (cantidad)</label>
+                <label className="font-body text-sm text-muted-foreground">Stock</label>
                 <input type="number" min="0" className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 font-body text-sm" value={form.stock_quantity} onChange={(e) => setForm({ ...form, stock_quantity: Math.max(0, parseInt(e.target.value) || 0) })} />
               </div>
             </div>
@@ -309,47 +295,29 @@ const AdminProducts = () => {
               <label className="font-body text-sm text-muted-foreground">Descripción</label>
               <textarea className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 font-body text-sm" rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
             </div>
-
-            {/* Image upload section */}
             <div>
               <label className="font-body text-sm text-muted-foreground">Imagen del producto</label>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-              />
+              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
               {imagePreview ? (
                 <div className="mt-1 relative inline-block">
                   <img src={imagePreview} alt="Preview" className="h-24 w-24 rounded-lg object-cover border border-border" />
-                  <button
-                    type="button"
-                    onClick={removeImage}
-                    className="absolute -top-2 -right-2 rounded-full bg-destructive p-1 text-destructive-foreground hover:bg-destructive/90"
-                  >
+                  <button type="button" onClick={removeImage} className="absolute -top-2 -right-2 rounded-full bg-destructive p-1 text-destructive-foreground hover:bg-destructive/90">
                     <X className="h-3 w-3" />
                   </button>
                 </div>
               ) : (
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                  className="mt-1 flex items-center gap-2 rounded-lg border border-dashed border-border px-4 py-3 font-body text-sm text-muted-foreground hover:border-primary hover:text-foreground transition-colors disabled:opacity-50"
-                >
+                <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="mt-1 flex items-center gap-2 rounded-lg border border-dashed border-border px-4 py-3 font-body text-sm text-muted-foreground hover:border-primary hover:text-foreground transition-colors disabled:opacity-50">
                   <Upload className="h-4 w-4" />
                   {uploading ? 'Subiendo...' : 'Subir imagen'}
                 </button>
               )}
             </div>
-
             <div className="flex gap-4">
               <label className="flex items-center gap-2 font-body text-sm">
-                <input type="checkbox" checked={form.is_new} onChange={(e) => setForm({ ...form, is_new: e.target.checked })} className="rounded border-input" /> Nuevo
+                <input type="checkbox" checked={form.is_new} onChange={(e) => setForm({ ...form, is_new: e.target.checked })} /> Nuevo
               </label>
               <label className="flex items-center gap-2 font-body text-sm">
-                <input type="checkbox" checked={form.is_featured} onChange={(e) => setForm({ ...form, is_featured: e.target.checked })} className="rounded border-input" /> Destacado
+                <input type="checkbox" checked={form.is_featured} onChange={(e) => setForm({ ...form, is_featured: e.target.checked })} /> Destacado
               </label>
             </div>
           </div>
