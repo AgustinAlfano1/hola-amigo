@@ -1,6 +1,8 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useProducts } from '@/hooks/useProducts';
+import { usePromotions } from '@/hooks/usePromotions';
+import type { Promotion } from '@/hooks/usePromotions';
 import { useToast } from '@/hooks/use-toast';
 import StoreHeader from '@/components/store/StoreHeader';
 import HeroBanner from '@/components/store/HeroBanner';
@@ -21,13 +23,9 @@ const Index = () => {
   useEffect(() => {
     const payment = searchParams.get('payment');
     if (payment) {
-      if (payment === 'success') {
-        toast({ title: '¡Pago exitoso!', description: 'Tu pedido fue confirmado. Gracias por tu compra.' });
-      } else if (payment === 'failure') {
-        toast({ title: 'Pago rechazado', description: 'El pago no se pudo procesar. Intentá de nuevo.', variant: 'destructive' });
-      } else if (payment === 'pending') {
-        toast({ title: 'Pago pendiente', description: 'Tu pago está siendo procesado.' });
-      }
+      if (payment === 'success') toast({ title: '¡Pago exitoso!', description: 'Tu pedido fue confirmado. Gracias por tu compra.' });
+      else if (payment === 'failure') toast({ title: 'Pago rechazado', description: 'El pago no se pudo procesar. Intentá de nuevo.', variant: 'destructive' });
+      else if (payment === 'pending') toast({ title: 'Pago pendiente', description: 'Tu pago está siendo procesado.' });
       searchParams.delete('payment');
       searchParams.delete('order_id');
       setSearchParams(searchParams, { replace: true });
@@ -35,6 +33,14 @@ const Index = () => {
   }, []);
 
   const { data: products = [], isLoading } = useProducts(searchTerm);
+  const { data: promotions = [] } = usePromotions();
+
+  // Map promotions by product_id for O(1) lookup
+  const promotionMap = useMemo(() => {
+    const map = new Map<string, Promotion>();
+    promotions.forEach(p => map.set(p.product_id, p));
+    return map;
+  }, [promotions]);
 
   const brands = useMemo(() => {
     const set = new Set(products.map(p => p.brand).filter(Boolean) as string[]);
@@ -66,6 +72,8 @@ const Index = () => {
     });
   }, [products, selectedBrands, selectedCategories]);
 
+  const selectedPromotion = selectedProduct ? promotionMap.get(selectedProduct.id) : undefined;
+
   return (
     <div className="min-h-screen bg-background">
       <StoreHeader />
@@ -81,11 +89,15 @@ const Index = () => {
             brands={brands}
             categories={availableCategories}
           />
-
           <div className="flex-1">
             <div className="mb-4 flex items-center justify-between">
               <p className="font-body text-sm text-muted-foreground">
                 {filteredProducts.length} producto{filteredProducts.length !== 1 ? 's' : ''}
+                {promotions.length > 0 && (
+                  <span className="ml-2 rounded-full bg-amber-500/15 px-2 py-0.5 font-body text-xs font-medium text-amber-600">
+                    {promotions.length} en promoción
+                  </span>
+                )}
               </p>
             </div>
 
@@ -104,6 +116,7 @@ const Index = () => {
                   <div key={product.id} className="animate-fade-in" style={{ animationDelay: `${i * 50}ms` }}>
                     <ProductCard
                       product={product}
+                      promotion={promotionMap.get(product.id)}
                       onClick={() => setSelectedProduct(product)}
                     />
                   </div>
@@ -117,6 +130,7 @@ const Index = () => {
       <CartDrawer />
       <ProductModal
         product={selectedProduct}
+        promotion={selectedPromotion}
         onClose={() => setSelectedProduct(null)}
       />
     </div>
