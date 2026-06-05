@@ -6,7 +6,9 @@ import StoreHeader from '@/components/store/StoreHeader';
 import HeroBanner from '@/components/store/HeroBanner';
 import FilterSidebar from '@/components/store/FilterSidebar';
 import ProductCard from '@/components/store/ProductCard';
+import ProductModal from '@/components/store/ProductModal';
 import CartDrawer from '@/components/store/CartDrawer';
+import type { DBProduct } from '@/hooks/useProducts';
 
 const Index = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -14,6 +16,7 @@ const Index = () => {
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState<DBProduct | null>(null);
 
   useEffect(() => {
     const payment = searchParams.get('payment');
@@ -38,7 +41,6 @@ const Index = () => {
     return Array.from(set).sort();
   }, [products]);
 
-  // Categories filtered by selected brands
   const availableCategories = useMemo(() => {
     const pool = selectedBrands.length > 0
       ? products.filter(p => p.brand && selectedBrands.includes(p.brand))
@@ -47,10 +49,8 @@ const Index = () => {
     return Array.from(set).sort();
   }, [products, selectedBrands]);
 
-  // When brands change, remove categories that are no longer available
   const handleBrandsChange = (newBrands: string[]) => {
     setSelectedBrands(newBrands);
-    // Recompute valid categories for new brand selection
     const pool = newBrands.length > 0
       ? products.filter(p => p.brand && newBrands.includes(p.brand))
       : products;
@@ -102,7 +102,10 @@ const Index = () => {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {filteredProducts.map((product, i) => (
                   <div key={product.id} className="animate-fade-in" style={{ animationDelay: `${i * 50}ms` }}>
-                    <ProductCard product={product} />
+                    <ProductCard
+                      product={product}
+                      onClick={() => setSelectedProduct(product)}
+                    />
                   </div>
                 ))}
               </div>
@@ -112,6 +115,10 @@ const Index = () => {
       </div>
 
       <CartDrawer />
+      <ProductModal
+        product={selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+      />
     </div>
   );
 };
