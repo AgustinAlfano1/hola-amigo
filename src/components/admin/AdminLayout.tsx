@@ -2,12 +2,13 @@ import { ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminCheck } from '@/hooks/useAdminCheck';
-import { Package, ShoppingBag, Users, LayoutDashboard, LogOut, ArrowLeft, FileUp, Images } from 'lucide-react';
+import { Package, ShoppingBag, Users, LayoutDashboard, LogOut, ArrowLeft, FileUp, Images, Zap } from 'lucide-react';
 import NotificationsBell from '@/components/admin/NotificationsBell';
 
 const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
   { label: 'Productos', icon: Package, path: '/admin/products' },
+  { label: 'Promociones', icon: Zap, path: '/admin/promotions' },
   { label: 'Pedidos', icon: ShoppingBag, path: '/admin/orders' },
   { label: 'Usuarios', icon: Users, path: '/admin/users' },
   { label: 'Importar CSV', icon: FileUp, path: '/admin/import' },
@@ -42,7 +43,6 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
 
   return (
     <div className="flex h-screen bg-background">
-      {/* Sidebar */}
       <aside className="flex w-64 flex-col bg-sidebar text-sidebar-foreground">
         <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
           <div className="flex items-center gap-3">
@@ -57,14 +57,15 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
         <nav className="flex-1 space-y-1 p-3">
           {navItems.map((item) => {
             const active = location.pathname === item.path;
+            const isPromo = item.path === '/admin/promotions';
             return (
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
                 className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 font-body text-sm transition-colors ${
                   active
-                    ? 'bg-sidebar-primary text-sidebar-primary-foreground'
-                    : 'text-primary hover:bg-sidebar-accent hover:text-primary'
+                    ? isPromo ? 'bg-amber-500 text-white' : 'bg-sidebar-primary text-sidebar-primary-foreground'
+                    : isPromo ? 'text-amber-500 hover:bg-amber-500/10' : 'text-primary hover:bg-sidebar-accent hover:text-primary'
                 }`}
               >
                 <item.icon className="h-4 w-4" />
@@ -75,24 +76,17 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
         </nav>
 
         <div className="space-y-1 border-t border-sidebar-border p-3">
-          <button
-            onClick={() => navigate('/')}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 font-body text-sm text-primary transition-colors hover:bg-sidebar-accent hover:text-primary"
-          >
+          <button onClick={() => navigate('/')} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 font-body text-sm text-primary transition-colors hover:bg-sidebar-accent hover:text-primary">
             <ArrowLeft className="h-4 w-4" />
             Volver a la tienda
           </button>
-          <button
-            onClick={signOut}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 font-body text-sm text-primary transition-colors hover:bg-sidebar-accent hover:text-primary"
-          >
+          <button onClick={signOut} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 font-body text-sm text-primary transition-colors hover:bg-sidebar-accent hover:text-primary">
             <LogOut className="h-4 w-4" />
             Cerrar sesión
           </button>
         </div>
       </aside>
 
-      {/* Main content */}
       <main className="flex-1 overflow-auto">
         <div className="p-6">{children}</div>
       </main>
