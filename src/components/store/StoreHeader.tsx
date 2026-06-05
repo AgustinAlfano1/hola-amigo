@@ -3,7 +3,10 @@ import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminCheck } from '@/hooks/useAdminCheck';
 import { useNavigate } from 'react-router-dom';
-import fiatLogo from '@/assets/fiat-logo.png';
+
+const WHATSAPP_NUMBER = '5491149989332';
+const WHATSAPP_MSG = encodeURIComponent('¡Hola! Me gustaría hacer una consulta sobre repuestos. 🔧');
+const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MSG}`;
 
 const StoreHeader = () => {
   const { totalItems, setIsOpen } = useCart();
@@ -26,10 +29,15 @@ const StoreHeader = () => {
               Lun–Vie 8:00–18:00 · Sáb 8:00–13:00
             </span>
           </div>
-          <span className="flex items-center gap-1.5">
-            <Phone className="h-3 w-3 text-primary" />
+          <a
+            href={WHATSAPP_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-green-400 hover:text-green-300 transition-colors"
+          >
+            <Phone className="h-3 w-3" />
             Contactanos por WhatsApp
-          </span>
+          </a>
         </div>
       </div>
 
@@ -42,7 +50,8 @@ const StoreHeader = () => {
             onClick={() => navigate('/')}
           >
             <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded bg-white/5 border border-white/10 p-1">
-              <img src={fiatLogo} alt="FIAT Morón" className="h-full w-full object-contain" />
+              <img src="/fiat-logo.png" alt="FIAT Morón" className="h-full w-full object-contain"
+                onError={(e) => { e.currentTarget.style.display='none'; }} />
             </div>
             <div>
               <h1 className="font-heading text-xl font-bold leading-none tracking-widest text-white group-hover:text-primary transition-colors">
@@ -58,9 +67,9 @@ const StoreHeader = () => {
           <nav className="hidden md:flex items-center gap-6 font-body text-sm text-zinc-300">
             <button onClick={() => navigate('/')} className="hover:text-primary transition-colors tracking-wide uppercase text-xs font-medium">Productos</button>
             <span className="text-zinc-600">|</span>
-            <span className="text-zinc-600 text-xs uppercase tracking-wide">Marcas</span>
+            <button onClick={() => navigate('/')} className="hover:text-primary transition-colors tracking-wide uppercase text-xs font-medium text-zinc-500">Marcas</button>
             <span className="text-zinc-600">|</span>
-            <span className="text-zinc-600 text-xs uppercase tracking-wide">Contacto</span>
+            <button onClick={() => navigate('/contacto')} className="hover:text-primary transition-colors tracking-wide uppercase text-xs font-medium text-zinc-500">Contacto</button>
           </nav>
 
           {/* Actions */}
