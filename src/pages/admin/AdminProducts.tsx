@@ -161,7 +161,7 @@ const AdminProducts = () => {
     const { data } = await supabase
       .from('products')
       .select('*')
-      .gt('stock_quantity', 0)
+      
       .order('brand', { ascending: true });
 
     if (!data || data.length === 0) {
@@ -183,13 +183,14 @@ const AdminProducts = () => {
 
     const csv = [headers, ...rows]
       .map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
-      .join('\n');
+      .join('
+');
 
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `productos-activos-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `productos-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     URL.revokeObjectURL(url);
     toast({ title: `✅ ${data.length} productos exportados` });
@@ -214,7 +215,7 @@ const AdminProducts = () => {
             onClick={handleExportCSV}
             className="flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2 font-body text-sm text-foreground hover:bg-muted transition-colors whitespace-nowrap"
           >
-            <Download className="h-4 w-4" /> Exportar activos
+            <Download className="h-4 w-4" /> Exportar todos
           </button>
           <button onClick={openCreate} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-body text-sm text-primary-foreground hover:bg-primary/90 transition-colors whitespace-nowrap">
             <Plus className="h-4 w-4" /> Nuevo
