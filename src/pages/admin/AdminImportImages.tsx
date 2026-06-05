@@ -17,7 +17,7 @@ type ImageMatch = {
 
 const normalize = (str: string) =>
   str.toUpperCase()
-    .replace(/[./\\()\[\]{}]/g, ' ')
+    .replace(/[./\()\[\]{}]/g, ' ')
     .replace(/[-_]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
@@ -114,10 +114,11 @@ const AdminImportImages = () => {
           .from('product-images')
           .getPublicUrl(fileName);
 
+        // Update all products with the same name
         const { error: updateError } = await supabase
           .from('products')
           .update({ image_url: urlData.publicUrl })
-          .eq('id', match.matchedProduct.id);
+          .eq('name', match.matchedProduct.name);
 
         if (updateError) throw updateError;
 
