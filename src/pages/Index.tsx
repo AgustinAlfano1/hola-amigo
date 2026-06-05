@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useProducts } from '@/hooks/useProducts';
 import { usePromotions } from '@/hooks/usePromotions';
@@ -23,7 +23,6 @@ const Index = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<DBProduct | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const productsRef = useRef<HTMLDivElement>(null);
   const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
@@ -122,14 +121,14 @@ const Index = () => {
     return pages;
   }, [totalPages, currentPage]);
 
-  const scrollToProducts = () => productsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
   return (
     <div className="min-h-screen bg-background">
       <StoreHeader />
       <HeroBanner searchTerm={searchTerm} onSearchChange={handleSearchChange} />
 
-      <div ref={productsRef} className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col gap-8 lg:flex-row">
           <FilterSidebar
             selectedBrands={selectedBrands}
@@ -194,7 +193,7 @@ const Index = () => {
                 {!showAll && totalPages > 1 && (
                   <div className="mt-8 flex items-center justify-center gap-1">
                     <button
-                      onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); scrollToProducts(); }}
+                      onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); scrollToTop(); }}
                       disabled={currentPage === 1}
                       className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground transition-colors hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed"
                     >
@@ -207,7 +206,7 @@ const Index = () => {
                       ) : (
                         <button
                           key={page}
-                          onClick={() => { setCurrentPage(page as number); scrollToProducts(); }}
+                          onClick={() => { setCurrentPage(page as number); scrollToTop(); }}
                           className={`flex h-9 w-9 items-center justify-center rounded-lg font-body text-sm transition-colors ${
                             currentPage === page
                               ? 'bg-primary text-white font-bold'
@@ -220,7 +219,7 @@ const Index = () => {
                     )}
 
                     <button
-                      onClick={() => { setCurrentPage(p => Math.min(totalPages, p + 1)); scrollToProducts(); }}
+                      onClick={() => { setCurrentPage(p => Math.min(totalPages, p + 1)); scrollToTop(); }}
                       disabled={currentPage === totalPages}
                       className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground transition-colors hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed"
                     >
