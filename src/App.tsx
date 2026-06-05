@@ -14,6 +14,7 @@ import AdminProducts from "./pages/admin/AdminProducts";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminImportCSV from "./pages/admin/AdminImportCSV";
+import AdminImportImages from "./pages/admin/AdminImportImages";
 import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="/admin/orders" element={<AdminOrders />} />
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/import" element={<AdminImportCSV />} />
+              <Route path="/admin/import-images" element={<AdminImportImages />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
