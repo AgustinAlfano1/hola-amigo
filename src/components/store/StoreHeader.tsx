@@ -1,4 +1,4 @@
-import { ShoppingCart, User, LogOut, Shield } from 'lucide-react';
+import { ShoppingCart, User, LogOut, Shield, Phone, MapPin, Clock } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminCheck } from '@/hooks/useAdminCheck';
@@ -12,61 +12,100 @@ const StoreHeader = () => {
   const navigate = useNavigate();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-primary/80 bg-primary text-primary-foreground backdrop-blur">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
-          <div className="flex h-10 w-10 items-center justify-center overflow-hidden">
-            <img src={fiatLogo} alt="FIAT Morón" className="h-10 w-10 object-contain" />
+    <header className="sticky top-0 z-50">
+      {/* Top bar */}
+      <div className="bg-zinc-900 text-zinc-400 text-xs">
+        <div className="container mx-auto flex items-center justify-between px-4 py-1.5">
+          <div className="flex items-center gap-4">
+            <span className="flex items-center gap-1.5">
+              <MapPin className="h-3 w-3 text-primary" />
+              Morón, Buenos Aires
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Clock className="h-3 w-3 text-primary" />
+              Lun–Vie 8:00–18:00 · Sáb 8:00–13:00
+            </span>
           </div>
-          <div>
-            <h1 className="font-heading text-lg font-bold leading-tight tracking-wider text-white">
-              FIAT Morón
-            </h1>
-            <p className="text-xs text-white/60 font-body">Repuestos para tu vehículo</p>
-          </div>
+          <span className="flex items-center gap-1.5">
+            <Phone className="h-3 w-3 text-primary" />
+            Contactanos por WhatsApp
+          </span>
         </div>
+      </div>
 
-        <div className="flex items-center gap-2">
-          {user && isAdmin && (
-            <button
-              onClick={() => navigate('/admin')}
-              className="flex items-center gap-2 rounded-lg border-2 border-white/40 bg-black/25 px-3 py-2 font-body text-sm text-white transition-colors hover:bg-black/40"
-            >
-              <Shield className="h-4 w-4" />
-              <span className="hidden sm:inline">Admin</span>
-            </button>
-          )}
-
-          {user ? (
-            <button
-              onClick={signOut}
-              className="flex items-center gap-2 rounded-lg border border-white/20 bg-white px-3 py-2 font-body text-sm text-red-800 transition-colors hover:bg-white/90"
-            >
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Salir</span>
-            </button>
-          ) : (
-            <button
-              onClick={() => navigate('/auth')}
-              className="flex items-center gap-2 rounded-lg border border-white/20 bg-white px-3 py-2 font-body text-sm text-red-800 transition-colors hover:bg-white/90"
-            >
-              <User className="h-4 w-4" />
-              <span className="hidden sm:inline">Ingresar</span>
-            </button>
-          )}
-
-          <button
-            onClick={() => setIsOpen(true)}
-            className="relative flex items-center gap-2 rounded-lg border border-white/20 bg-white px-4 py-2 font-body text-sm font-medium text-red-800 transition-colors hover:bg-white/90"
+      {/* Main header */}
+      <div className="border-b border-primary/30 bg-zinc-950 text-white shadow-lg">
+        <div className="container mx-auto flex h-16 items-center justify-between px-4">
+          {/* Logo */}
+          <div
+            className="flex items-center gap-3 cursor-pointer group"
+            onClick={() => navigate('/')}
           >
-            <ShoppingCart className="h-4 w-4" />
-            <span className="hidden sm:inline">Carrito</span>
-            {totalItems > 0 && (
-              <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-accent-foreground">
-                {totalItems}
-              </span>
+            <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded bg-white/5 border border-white/10 p-1">
+              <img src={fiatLogo} alt="FIAT Morón" className="h-full w-full object-contain" />
+            </div>
+            <div>
+              <h1 className="font-heading text-xl font-bold leading-none tracking-widest text-white group-hover:text-primary transition-colors">
+                FIAT MORÓN
+              </h1>
+              <p className="text-[10px] font-body text-zinc-400 tracking-widest uppercase mt-0.5">
+                Repuestos & Accesorios
+              </p>
+            </div>
+          </div>
+
+          {/* Nav links */}
+          <nav className="hidden md:flex items-center gap-6 font-body text-sm text-zinc-300">
+            <button onClick={() => navigate('/')} className="hover:text-primary transition-colors tracking-wide uppercase text-xs font-medium">Productos</button>
+            <span className="text-zinc-600">|</span>
+            <span className="text-zinc-600 text-xs uppercase tracking-wide">Marcas</span>
+            <span className="text-zinc-600">|</span>
+            <span className="text-zinc-600 text-xs uppercase tracking-wide">Contacto</span>
+          </nav>
+
+          {/* Actions */}
+          <div className="flex items-center gap-2">
+            {user && isAdmin && (
+              <button
+                onClick={() => navigate('/admin')}
+                className="flex items-center gap-1.5 rounded border border-zinc-600 bg-zinc-800 px-3 py-1.5 font-body text-xs text-zinc-300 transition-colors hover:bg-zinc-700 hover:text-white"
+              >
+                <Shield className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Admin</span>
+              </button>
             )}
-          </button>
+
+            {user ? (
+              <button
+                onClick={signOut}
+                className="flex items-center gap-1.5 rounded border border-zinc-600 bg-zinc-800 px-3 py-1.5 font-body text-xs text-zinc-300 transition-colors hover:border-red-500/50 hover:text-red-400"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Salir</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => navigate('/auth')}
+                className="flex items-center gap-1.5 rounded border border-zinc-600 bg-zinc-800 px-3 py-1.5 font-body text-xs text-zinc-300 transition-colors hover:bg-zinc-700 hover:text-white"
+              >
+                <User className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Ingresar</span>
+              </button>
+            )}
+
+            <button
+              onClick={() => setIsOpen(true)}
+              className="relative flex items-center gap-2 rounded bg-primary px-4 py-2 font-body text-xs font-semibold text-white transition-colors hover:bg-primary/85 tracking-wide uppercase"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              <span className="hidden sm:inline">Carrito</span>
+              {totalItems > 0 && (
+                <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-white text-[10px] font-bold text-primary shadow">
+                  {totalItems}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </header>
