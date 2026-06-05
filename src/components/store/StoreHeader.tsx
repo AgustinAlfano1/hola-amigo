@@ -49,8 +49,8 @@ const StoreHeader = () => {
             className="flex items-center gap-3 cursor-pointer group"
             onClick={() => navigate('/')}
           >
-            <div className="flex h-11 w-11 items-center justify-center rounded bg-primary border border-primary/50 shrink-0">
-              <span className="font-heading text-lg font-black text-white tracking-tight leading-none">F</span>
+            <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded bg-zinc-900 border border-white/10 p-1 shrink-0">
+              <img src="/fiat-logo.png" alt="FIAT" className="h-full w-full object-contain" />
             </div>
             <div>
               <h1 className="font-heading text-xl font-bold leading-none tracking-widest text-white group-hover:text-primary transition-colors">
