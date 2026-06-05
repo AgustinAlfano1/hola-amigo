@@ -1,12 +1,13 @@
-import { ShoppingCart, AlertCircle, Tag } from 'lucide-react';
+import { ShoppingCart, Tag, Eye } from 'lucide-react';
 import type { DBProduct } from '@/hooks/useProducts';
 import { useCart } from '@/contexts/CartContext';
 
 interface ProductCardProps {
   product: DBProduct;
+  onClick?: () => void;
 }
 
-const ProductCard = ({ product }: ProductCardProps) => {
+const ProductCard = ({ product, onClick }: ProductCardProps) => {
   const { addToCart } = useCart();
 
   const formatPrice = (price: number) =>
@@ -19,7 +20,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
     : 0;
 
   return (
-    <div className="card-hover group relative flex flex-col rounded-lg border border-border bg-card overflow-hidden" style={{ boxShadow: 'var(--shadow-card)' }}>
+    <div
+      className="card-hover group relative flex flex-col rounded-lg border border-border bg-card overflow-hidden cursor-pointer"
+      style={{ boxShadow: 'var(--shadow-card)' }}
+      onClick={onClick}
+    >
       {/* Discount badge */}
       {hasDiscount && (
         <div className="absolute top-2 left-2 z-10 flex items-center gap-1 rounded bg-primary px-2 py-0.5">
@@ -44,14 +49,18 @@ const ProductCard = ({ product }: ProductCardProps) => {
             src={product.image_url}
             alt={product.name}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-              e.currentTarget.parentElement!.innerHTML = '<span class="text-5xl">🔧</span>';
-            }}
           />
         ) : (
           <span className="text-5xl opacity-30">🔧</span>
         )}
+
+        {/* Ver detalle overlay on hover */}
+        <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 font-body text-xs font-semibold text-zinc-800 shadow">
+            <Eye className="h-3.5 w-3.5" />
+            Ver detalle
+          </div>
+        </div>
       </div>
 
       {/* Content */}
@@ -72,7 +81,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
         )}
 
         <div className="mt-auto pt-4">
-          {/* Price */}
           <div className="mb-3 flex items-end gap-2">
             <span className="font-heading text-2xl font-bold text-foreground leading-none">
               {formatPrice(product.price)}
@@ -84,9 +92,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
             )}
           </div>
 
-          {/* Add to cart */}
           <button
-            onClick={() => addToCart(product)}
+            onClick={(e) => { e.stopPropagation(); addToCart(product); }}
             disabled={outOfStock}
             className="flex w-full items-center justify-center gap-2 rounded bg-primary px-4 py-2.5 font-heading text-xs font-semibold tracking-widest text-white transition-all hover:bg-primary/85 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-30"
           >
