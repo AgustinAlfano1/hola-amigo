@@ -15,6 +15,7 @@ import AdminOrders from "./pages/admin/AdminOrders";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminImportCSV from "./pages/admin/AdminImportCSV";
 import AdminImportImages from "./pages/admin/AdminImportImages";
+import AdminPromotions from "./pages/admin/AdminPromotions";
 import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/products" element={<AdminProducts />} />
+              <Route path="/admin/promotions" element={<AdminPromotions />} />
               <Route path="/admin/orders" element={<AdminOrders />} />
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/import" element={<AdminImportCSV />} />
