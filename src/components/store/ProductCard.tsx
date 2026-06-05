@@ -25,30 +25,28 @@ const ProductCard = ({ product, onClick }: ProductCardProps) => {
       style={{ boxShadow: 'var(--shadow-card)' }}
       onClick={onClick}
     >
-      {/* Discount badge */}
-      {hasDiscount && (
-        <div className="absolute top-2 left-2 z-10 flex items-center gap-1 rounded bg-primary px-2 py-0.5">
-          <Tag className="h-2.5 w-2.5 text-white" />
-          <span className="font-body text-[10px] font-bold text-white">-{discountPct}%</span>
-        </div>
-      )}
+      {/* Badges top-left */}
+      <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
+        {hasDiscount && (
+          <div className="flex items-center gap-1 rounded bg-primary px-2 py-0.5">
+            <Tag className="h-2.5 w-2.5 text-white" />
+            <span className="font-body text-[10px] font-bold text-white">-{discountPct}%</span>
+          </div>
+        )}
+        {outOfStock && (
+          <div className="rounded border border-destructive/40 bg-background/90 px-2 py-0.5 backdrop-blur-sm">
+            <span className="font-heading text-[10px] font-bold text-destructive tracking-widest">SIN STOCK</span>
+          </div>
+        )}
+      </div>
 
-      {/* Out of stock overlay */}
-      {outOfStock && (
-        <div className="absolute inset-0 z-10 bg-background/60 backdrop-blur-[1px] flex items-center justify-center rounded-lg">
-          <span className="rounded border border-destructive/30 bg-background px-3 py-1 font-heading text-xs font-semibold text-destructive tracking-widest">
-            SIN STOCK
-          </span>
-        </div>
-      )}
-
-      {/* Image */}
+      {/* Image — always visible */}
       <div className="relative flex h-44 items-center justify-center bg-zinc-50 overflow-hidden border-b border-border">
         {product.image_url ? (
           <img
             src={product.image_url}
             alt={product.name}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className={`h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 ${outOfStock ? 'opacity-60' : ''}`}
           />
         ) : (
           <span className="text-5xl opacity-30">🔧</span>
