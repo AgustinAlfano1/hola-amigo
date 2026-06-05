@@ -16,6 +16,7 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminImportCSV from "./pages/admin/AdminImportCSV";
 import AdminImportImages from "./pages/admin/AdminImportImages";
 import AdminPromotions from "./pages/admin/AdminPromotions";
+import Promociones from "./pages/Promociones";
 import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/contacto" element={<Contact />} />
+              <Route path="/promociones" element={<Promociones />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/products" element={<AdminProducts />} />
