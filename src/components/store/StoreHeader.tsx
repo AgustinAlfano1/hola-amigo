@@ -66,7 +66,10 @@ const StoreHeader = () => {
           <nav className="hidden md:flex items-center gap-6 font-body text-sm text-zinc-300">
             <button onClick={() => navigate('/')} className="hover:text-primary transition-colors tracking-wide uppercase text-xs font-medium">Productos</button>
             <span className="text-zinc-600">|</span>
-            <button onClick={() => navigate('/')} className="hover:text-primary transition-colors tracking-wide uppercase text-xs font-medium text-zinc-500">Marcas</button>
+            <button onClick={() => navigate('/promociones')} className="flex items-center gap-1 hover:text-amber-400 transition-colors tracking-wide uppercase text-xs font-medium text-amber-500">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              Promociones
+            </button>
             <span className="text-zinc-600">|</span>
             <button onClick={() => navigate('/contacto')} className="hover:text-primary transition-colors tracking-wide uppercase text-xs font-medium text-zinc-500">Contacto</button>
           </nav>
