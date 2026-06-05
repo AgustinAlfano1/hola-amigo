@@ -10,10 +10,24 @@ import FilterSidebar from '@/components/store/FilterSidebar';
 import ProductCard from '@/components/store/ProductCard';
 import ProductModal from '@/components/store/ProductModal';
 import CartDrawer from '@/components/store/CartDrawer';
+import SortBar from '@/components/store/SortBar';
+import type { SortOption } from '@/components/store/SortBar';
 import type { DBProduct } from '@/hooks/useProducts';
 import { ChevronLeft, ChevronRight, LayoutGrid } from 'lucide-react';
 
 const PAGE_SIZE = 15;
+
+const applySort = (products: DBProduct[], sort: SortOption) => {
+  const arr = [...products];
+  switch (sort) {
+    case 'price-asc':  return arr.sort((a, b) => a.price - b.price);
+    case 'price-desc': return arr.sort((a, b) => b.price - a.price);
+    case 'name-asc':   return arr.sort((a, b) => a.name.localeCompare(b.name, 'es'));
+    case 'name-desc':  return arr.sort((a, b) => b.name.localeCompare(a.name, 'es'));
+    case 'featured':   return arr.sort((a, b) => (b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0));
+    default:           return arr;
+  }
+};
 
 const Index = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -25,6 +39,12 @@ const Index = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [showAll, setShowAll] = useState(false);
   const productsRef = useRef<HTMLDivElement>(null);
+
+  // Sort & extra filters
+  const [sort, setSort] = useState<SortOption>('default');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [onlyInStock, setOnlyInStock] = useState(false);
 
   useEffect(() => {
     const payment = searchParams.get('payment');
@@ -70,28 +90,33 @@ const Index = () => {
     setCurrentPage(1);
   };
 
-  const handleCategoriesChange = (cats: string[]) => {
-    setSelectedCategories(cats);
+  const resetPage = () => setCurrentPage(1);
+
+  const clearSortFilters = () => {
+    setSort('default');
+    setMinPrice('');
+    setMaxPrice('');
+    setOnlyInStock(false);
     setCurrentPage(1);
   };
 
-  const handleSearchChange = (term: string) => {
-    setSearchTerm(term);
-    setCurrentPage(1);
-  };
+  const hasActiveFilters = sort !== 'default' || minPrice !== '' || maxPrice !== '' || onlyInStock;
 
-  // All filtered products (no pagination yet)
   const filteredProducts = useMemo(() => {
-    return products.filter(p => {
+    let result = products.filter(p => {
       if (selectedBrands.length > 0 && (!p.brand || !selectedBrands.includes(p.brand))) return false;
       if (selectedCategories.length > 0 && (!p.category || !selectedCategories.includes(p.category))) return false;
+      if (onlyInStock && p.stock_quantity <= 0) return false;
+      const effectivePrice = promotionMap.get(p.id)?.promotional_price ?? p.price;
+      if (minPrice && effectivePrice < Number(minPrice)) return false;
+      if (maxPrice && effectivePrice > Number(maxPrice)) return false;
       return true;
     });
-  }, [products, selectedBrands, selectedCategories]);
+    return applySort(result, sort);
+  }, [products, selectedBrands, selectedCategories, sort, minPrice, maxPrice, onlyInStock, promotionMap]);
 
   const totalPages = Math.ceil(filteredProducts.length / PAGE_SIZE);
 
-  // Paginated slice
   const visibleProducts = useMemo(() => {
     if (showAll) return filteredProducts;
     const start = (currentPage - 1) * PAGE_SIZE;
@@ -100,24 +125,19 @@ const Index = () => {
 
   const selectedPromotion = selectedProduct ? promotionMap.get(selectedProduct.id) : undefined;
 
-  // Page numbers to show (max 5 around current)
   const pageNumbers = useMemo(() => {
     if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
     const pages: (number | '...')[] = [];
     if (currentPage <= 4) {
       for (let i = 1; i <= 5; i++) pages.push(i);
-      pages.push('...');
-      pages.push(totalPages);
+      pages.push('...'); pages.push(totalPages);
     } else if (currentPage >= totalPages - 3) {
-      pages.push(1);
-      pages.push('...');
+      pages.push(1); pages.push('...');
       for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
     } else {
-      pages.push(1);
-      pages.push('...');
+      pages.push(1); pages.push('...');
       for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
-      pages.push('...');
-      pages.push(totalPages);
+      pages.push('...'); pages.push(totalPages);
     }
     return pages;
   }, [totalPages, currentPage]);
@@ -131,7 +151,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <StoreHeader />
-      <HeroBanner searchTerm={searchTerm} onSearchChange={handleSearchChange} />
+      <HeroBanner searchTerm={searchTerm} onSearchChange={(t) => { setSearchTerm(t); resetPage(); }} />
 
       <div ref={productsRef} className="container mx-auto px-4 py-8">
         <div className="flex flex-col gap-8 lg:flex-row">
@@ -139,18 +159,29 @@ const Index = () => {
             selectedBrands={selectedBrands}
             selectedCategories={selectedCategories}
             onBrandsChange={handleBrandsChange}
-            onCategoriesChange={handleCategoriesChange}
+            onCategoriesChange={(c) => { setSelectedCategories(c); resetPage(); }}
             brands={brands}
             categories={availableCategories}
           />
 
           <div className="flex-1">
-            {/* Header bar */}
+            {/* SortBar */}
+            <SortBar
+              sort={sort} onSortChange={(s) => { setSort(s); resetPage(); }}
+              minPrice={minPrice} maxPrice={maxPrice}
+              onMinPriceChange={(v) => { setMinPrice(v); resetPage(); }}
+              onMaxPriceChange={(v) => { setMaxPrice(v); resetPage(); }}
+              onlyInStock={onlyInStock} onOnlyInStockChange={(v) => { setOnlyInStock(v); resetPage(); }}
+              onClear={clearSortFilters}
+              hasActiveFilters={hasActiveFilters}
+            />
+
+            {/* Counter + show all */}
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <p className="font-body text-sm text-muted-foreground">
                 {showAll
                   ? `${filteredProducts.length} productos`
-                  : `${Math.min((currentPage - 1) * PAGE_SIZE + 1, filteredProducts.length)}–${Math.min(currentPage * PAGE_SIZE, filteredProducts.length)} de ${filteredProducts.length} productos`
+                  : `${Math.min((currentPage - 1) * PAGE_SIZE + 1, filteredProducts.length || 1)}–${Math.min(currentPage * PAGE_SIZE, filteredProducts.length)} de ${filteredProducts.length} productos`
                 }
                 {promotions.length > 0 && (
                   <span className="ml-2 rounded-full bg-amber-500/15 px-2 py-0.5 font-body text-xs font-medium text-amber-600">
@@ -158,8 +189,6 @@ const Index = () => {
                   </span>
                 )}
               </p>
-
-              {/* Show all toggle */}
               {filteredProducts.length > PAGE_SIZE && (
                 <button
                   onClick={() => { setShowAll(v => !v); setCurrentPage(1); }}
@@ -194,7 +223,6 @@ const Index = () => {
                   ))}
                 </div>
 
-                {/* Pagination */}
                 {!showAll && totalPages > 1 && (
                   <div className="mt-8 flex items-center justify-center gap-1">
                     <button
