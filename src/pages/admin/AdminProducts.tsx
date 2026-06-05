@@ -161,6 +161,7 @@ const AdminProducts = () => {
     const { data } = await supabase
       .from('products')
       .select('*')
+      
       .order('brand', { ascending: true });
 
     if (!data || data.length === 0) {
@@ -182,8 +183,7 @@ const AdminProducts = () => {
 
     const csv = [headers, ...rows]
       .map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
-      .join('
-');
+      .join('\n');
 
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
