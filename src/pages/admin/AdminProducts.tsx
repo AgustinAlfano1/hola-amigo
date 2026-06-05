@@ -161,7 +161,6 @@ const AdminProducts = () => {
     const { data } = await supabase
       .from('products')
       .select('*')
-      
       .order('brand', { ascending: true });
 
     if (!data || data.length === 0) {
