@@ -67,7 +67,7 @@ const Auth = () => {
       email,
       password,
       options: {
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: 'https://fiat-moron.vercel.app/email-confirmed',
         data: {
           full_name: fullName.trim(),
           phone: phone.trim(),
