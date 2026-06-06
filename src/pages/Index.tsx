@@ -154,7 +154,7 @@ const Index = () => {
       <HeroBanner searchTerm={searchTerm} onSearchChange={(t) => { setSearchTerm(t); resetPage(); }} />
 
       <div ref={productsRef} className="container mx-auto px-4 py-8">
-        <div className="flex flex-col gap-8 lg:flex-row">
+        <div className="flex flex-col gap-4 lg:flex-row">
           <FilterSidebar
             selectedBrands={selectedBrands}
             selectedCategories={selectedCategories}
@@ -211,7 +211,7 @@ const Index = () => {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid grid-cols-2 gap-2 md:gap-4 xl:grid-cols-3">
                   {visibleProducts.map((product, i) => (
                     <div key={product.id} className="animate-fade-in" style={{ animationDelay: `${i * 30}ms` }}>
                       <ProductCard
