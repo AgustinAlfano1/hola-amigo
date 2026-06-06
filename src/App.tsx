@@ -18,6 +18,7 @@ import AdminImportImages from "./pages/admin/AdminImportImages";
 import AdminPromotions from "./pages/admin/AdminPromotions";
 import Promociones from "./pages/Promociones";
 import ResetPassword from "./pages/ResetPassword";
+import EmailConfirmed from "./pages/EmailConfirmed";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
               <Route path="/contacto" element={<Contact />} />
               <Route path="/promociones" element={<Promociones />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/email-confirmed" element={<EmailConfirmed />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/products" element={<AdminProducts />} />
               <Route path="/admin/promotions" element={<AdminPromotions />} />
