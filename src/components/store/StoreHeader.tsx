@@ -54,7 +54,7 @@ const StoreHeader = () => {
             </div>
             <div>
               <h1 className="font-heading text-base md:text-xl font-bold leading-none tracking-widest text-white group-hover:text-primary transition-colors">FIAT MORÓN</h1>
-              <p className="hidden md:block text-[10px] font-body text-zinc-400 tracking-widest uppercase mt-0.5">Repuestos & Accesorios</p>
+              <p className="hidden lg:block text-[10px] font-body text-zinc-400 tracking-widest uppercase mt-0.5">Repuestos & Accesorios</p>
             </div>
           </div>
 
