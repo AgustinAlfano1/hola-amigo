@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { Plus, Pencil, Trash2, Search, Upload, X, Download } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Upload, X, Download, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Tables } from '@/integrations/supabase/types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -26,6 +26,7 @@ const AdminProducts = () => {
   const [uploading, setUploading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const fetchProducts = async (searchTerm?: string) => {
@@ -233,17 +234,23 @@ const AdminProducts = () => {
             <div>
               <label className="font-body text-sm text-muted-foreground">Imagen</label>
               <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+              <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handleImageUpload} className="hidden" />
               {imagePreview ? (
                 <div className="mt-1 relative inline-block">
                   <img src={imagePreview} alt="Preview" className="h-20 w-20 rounded-lg object-cover border border-border" />
-                  <button type="button" onClick={() => { setForm({ ...form, image_url: '' }); setImagePreview(null); }} className="absolute -top-2 -right-2 rounded-full bg-destructive p-1 text-destructive-foreground">
+                  <button type="button" onClick={() => { setForm({ ...form, image_url: '' }); setImagePreview(null); if (fileInputRef.current) fileInputRef.current.value = ''; if (cameraInputRef.current) cameraInputRef.current.value = ''; }} className="absolute -top-2 -right-2 rounded-full bg-destructive p-1 text-destructive-foreground">
                     <X className="h-3 w-3" />
                   </button>
                 </div>
               ) : (
-                <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="mt-1 flex items-center gap-2 rounded-lg border border-dashed border-border px-4 py-2.5 font-body text-sm text-muted-foreground hover:border-primary transition-colors disabled:opacity-50">
-                  <Upload className="h-4 w-4" />{uploading ? 'Subiendo...' : 'Subir imagen'}
-                </button>
+                <div className="mt-1 flex flex-wrap gap-2">
+                  <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="flex items-center gap-2 rounded-lg border border-dashed border-border px-4 py-2.5 font-body text-sm text-muted-foreground hover:border-primary transition-colors disabled:opacity-50">
+                    <Upload className="h-4 w-4" />{uploading ? 'Subiendo...' : 'Galería'}
+                  </button>
+                  <button type="button" onClick={() => cameraInputRef.current?.click()} disabled={uploading} className="flex items-center gap-2 rounded-lg border border-dashed border-primary/40 px-4 py-2.5 font-body text-sm text-primary hover:border-primary hover:bg-primary/5 transition-colors disabled:opacity-50">
+                    <Camera className="h-4 w-4" />Tomar foto
+                  </button>
+                </div>
               )}
             </div>
             <div className="flex gap-4">
