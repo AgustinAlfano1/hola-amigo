@@ -31,7 +31,7 @@ const StoreHeader = () => {
   return (
     <header className="sticky top-0 z-50">
       {/* Top info bar — hidden on mobile */}
-      <div className="hidden md:block bg-zinc-900 text-zinc-400 text-xs">
+      <div className="hidden lg:block bg-zinc-900 text-zinc-400 text-xs">
         <div className="container mx-auto flex items-center justify-between px-4 py-1.5">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5"><MapPin className="h-3 w-3 text-primary" />Morón, Buenos Aires</span>
@@ -59,7 +59,7 @@ const StoreHeader = () => {
           </div>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-6 font-body text-sm text-zinc-300">
+          <nav className="hidden lg:flex items-center gap-6 font-body text-sm text-zinc-300">
             <button onClick={() => navigate('/')} className={`hover:text-primary transition-colors tracking-wide uppercase text-xs font-medium ${location.pathname === '/' ? 'text-primary' : ''}`}>Productos</button>
             <span className="text-zinc-600">|</span>
             <button onClick={() => navigate('/promociones')} className={`flex items-center gap-1 transition-colors tracking-wide uppercase text-xs font-medium ${location.pathname === '/promociones' ? 'text-amber-400' : 'text-amber-500 hover:text-amber-400'}`}>
@@ -73,22 +73,22 @@ const StoreHeader = () => {
           {/* Actions */}
           <div className="flex items-center gap-1.5 md:gap-2">
             {/* Mobile hamburger */}
-            <button onClick={() => setMobileMenuOpen(v => !v)} className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors md:hidden">
+            <button onClick={() => setMobileMenuOpen(v => !v)} className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-white transition-colors lg:hidden">
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
 
             {user && isAdmin && (
-              <button onClick={() => navigate('/admin')} className="hidden md:flex items-center gap-1.5 rounded border border-zinc-600 bg-zinc-800 px-3 py-1.5 font-body text-xs text-zinc-300 transition-colors hover:bg-zinc-700 hover:text-white">
+              <button onClick={() => navigate('/admin')} className="hidden lg:flex items-center gap-1.5 rounded border border-zinc-600 bg-zinc-800 px-3 py-1.5 font-body text-xs text-zinc-300 transition-colors hover:bg-zinc-700 hover:text-white">
                 <Shield className="h-3.5 w-3.5" /><span>Admin</span>
               </button>
             )}
 
             {user ? (
-              <button onClick={signOut} className="hidden md:flex items-center gap-1.5 rounded border border-zinc-600 bg-zinc-800 px-3 py-1.5 font-body text-xs text-zinc-300 transition-colors hover:border-red-500/50 hover:text-red-400">
+              <button onClick={signOut} className="hidden lg:flex items-center gap-1.5 rounded border border-zinc-600 bg-zinc-800 px-3 py-1.5 font-body text-xs text-zinc-300 transition-colors hover:border-red-500/50 hover:text-red-400">
                 <LogOut className="h-3.5 w-3.5" /><span>Salir</span>
               </button>
             ) : (
-              <button onClick={() => navigate('/auth')} className="hidden md:flex items-center gap-1.5 rounded border border-zinc-600 bg-zinc-800 px-3 py-1.5 font-body text-xs text-zinc-300 transition-colors hover:bg-zinc-700 hover:text-white">
+              <button onClick={() => navigate('/auth')} className="hidden lg:flex items-center gap-1.5 rounded border border-zinc-600 bg-zinc-800 px-3 py-1.5 font-body text-xs text-zinc-300 transition-colors hover:bg-zinc-700 hover:text-white">
                 <User className="h-3.5 w-3.5" /><span>Ingresar</span>
               </button>
             )}
@@ -107,8 +107,8 @@ const StoreHeader = () => {
       {/* Mobile dropdown menu */}
       {mobileMenuOpen && (
         <>
-          <div className="fixed inset-0 z-40 bg-black/50 md:hidden" onClick={() => setMobileMenuOpen(false)} />
-          <div className="absolute left-0 right-0 z-50 border-b border-zinc-800 bg-zinc-950 shadow-xl md:hidden">
+          <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setMobileMenuOpen(false)} />
+          <div className="absolute left-0 right-0 z-50 border-b border-zinc-800 bg-zinc-950 shadow-xl lg:hidden">
             <nav className="container mx-auto px-4 py-3 space-y-1">
               {navLinks.map(({ label, path, icon: Icon, highlight }) => (
                 <button
