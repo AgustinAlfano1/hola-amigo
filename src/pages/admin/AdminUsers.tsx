@@ -83,7 +83,36 @@ const AdminUsers = () => {
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>
       ) : (
-        <div className="overflow-auto rounded-xl border border-border bg-card">
+
+          {/* MOBILE card list */}
+          <div className="space-y-2 lg:hidden">
+            {users.map(u => (
+              <div key={u.id} className="flex items-start gap-3 rounded-xl border border-border bg-card p-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-body text-sm font-medium text-foreground">{u.full_name || '(sin nombre)'}</p>
+                    <button
+                      disabled={toggling === u.id}
+                      onClick={() => toggleRole(u.id, u.role || 'user', u.roleId)}
+                      className={`rounded-full px-2 py-0.5 font-body text-[10px] font-medium ${u.role === 'admin' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}
+                    >
+                      {toggling === u.id ? '...' : u.role === 'admin' ? 'Admin' : 'Usuario'}
+                    </button>
+                  </div>
+                  <p className="font-body text-xs text-muted-foreground mt-0.5">{u.phone || '—'} · DNI: {u.dni || '—'}</p>
+                  <p className="font-body text-xs text-muted-foreground">{u.address || '—'}</p>
+                  <p className="font-body text-xs text-muted-foreground">{new Date(u.created_at).toLocaleDateString('es-AR')}</p>
+                </div>
+                <button onClick={() => openEdit(u)} className="rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors shrink-0">
+                  <Pencil className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+            {users.length === 0 && <p className="py-12 text-center font-body text-sm text-muted-foreground">No hay usuarios registrados</p>}
+          </div>
+
+          {/* DESKTOP table */}
+          <div className="hidden lg:block overflow-auto rounded-xl border border-border bg-card">
           <table className="w-full font-body text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/50">
@@ -134,7 +163,7 @@ const AdminUsers = () => {
               )}
             </tbody>
           </table>
-        </div>
+          </div>
       )}
 
       {/* Edit modal */}
