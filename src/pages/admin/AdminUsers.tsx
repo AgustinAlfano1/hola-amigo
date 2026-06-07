@@ -35,11 +35,9 @@ const AdminUsers = () => {
     setToggling(userId);
     const newRole = currentRole === 'admin' ? 'user' : 'admin';
     if (roleId) {
-      const { error } = await supabase.from('user_roles').update({ role: newRole }).eq('id', roleId);
-      if (error) { toast.error('Error al cambiar rol'); setToggling(null); return; }
+      await supabase.from('user_roles').update({ role: newRole }).eq('id', roleId);
     } else {
-      const { error } = await supabase.from('user_roles').insert({ user_id: userId, role: newRole });
-      if (error) { toast.error('Error al cambiar rol'); setToggling(null); return; }
+      await supabase.from('user_roles').insert({ user_id: userId, role: newRole });
     }
     toast.success(`Rol cambiado a ${newRole === 'admin' ? 'Admin' : 'Usuario'}`);
     await fetchUsers();
@@ -48,48 +46,34 @@ const AdminUsers = () => {
 
   const openEdit = (user: UserRow) => {
     setEditing(user);
-    setForm({
-      full_name: user.full_name || '',
-      phone: user.phone || '',
-      dni: user.dni || '',
-      cuil_cuit: user.cuil_cuit || '',
-      address: user.address || '',
-    });
+    setForm({ full_name: user.full_name || '', phone: user.phone || '', dni: user.dni || '', cuil_cuit: user.cuil_cuit || '', address: user.address || '' });
   };
 
   const handleSave = async () => {
     if (!editing) return;
     setSaving(true);
-    const { error } = await supabase
-      .from('profiles')
-      .update(form)
-      .eq('id', editing.id);
-    if (error) {
-      toast.error('Error al guardar cambios');
-    } else {
-      toast.success('Datos actualizados');
-      setEditing(null);
-      fetchUsers();
-    }
+    const { error } = await supabase.from('profiles').update(form).eq('id', editing.id);
+    if (error) toast.error('Error al guardar');
+    else { toast.success('Datos actualizados'); setEditing(null); fetchUsers(); }
     setSaving(false);
   };
 
   return (
     <AdminLayout>
-      <h2 className="font-heading text-2xl font-bold text-foreground mb-6">Usuarios</h2>
+      <h2 className="font-heading text-xl font-bold text-foreground mb-4">Usuarios</h2>
 
       {loading ? (
         <div className="flex justify-center py-12">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>
       ) : (
-
+        <>
           {/* MOBILE card list */}
           <div className="space-y-2 lg:hidden">
             {users.map(u => (
               <div key={u.id} className="flex items-start gap-3 rounded-xl border border-border bg-card p-3">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
                     <p className="font-body text-sm font-medium text-foreground">{u.full_name || '(sin nombre)'}</p>
                     <button
                       disabled={toggling === u.id}
@@ -99,74 +83,70 @@ const AdminUsers = () => {
                       {toggling === u.id ? '...' : u.role === 'admin' ? 'Admin' : 'Usuario'}
                     </button>
                   </div>
-                  <p className="font-body text-xs text-muted-foreground mt-0.5">{u.phone || '—'} · DNI: {u.dni || '—'}</p>
-                  <p className="font-body text-xs text-muted-foreground">{u.address || '—'}</p>
-                  <p className="font-body text-xs text-muted-foreground">{new Date(u.created_at).toLocaleDateString('es-AR')}</p>
+                  <p className="font-body text-xs text-muted-foreground">📞 {u.phone || '—'}</p>
+                  <p className="font-body text-xs text-muted-foreground">🪪 {u.dni || '—'} · {u.cuil_cuit || '—'}</p>
+                  <p className="font-body text-xs text-muted-foreground">📍 {u.address || '—'}</p>
+                  <p className="font-body text-xs text-muted-foreground">📅 {new Date(u.created_at).toLocaleDateString('es-AR')}</p>
                 </div>
                 <button onClick={() => openEdit(u)} className="rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors shrink-0">
                   <Pencil className="h-4 w-4" />
                 </button>
               </div>
             ))}
-            {users.length === 0 && <p className="py-12 text-center font-body text-sm text-muted-foreground">No hay usuarios registrados</p>}
+            {users.length === 0 && (
+              <p className="py-12 text-center font-body text-sm text-muted-foreground">No hay usuarios registrados</p>
+            )}
           </div>
 
           {/* DESKTOP table */}
           <div className="hidden lg:block overflow-auto rounded-xl border border-border bg-card">
-          <table className="w-full font-body text-sm">
-            <thead>
-              <tr className="border-b border-border bg-muted/50">
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Nombre</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Teléfono</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">DNI</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">CUIL/CUIT</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Dirección</th>
-                <th className="px-4 py-3 text-center font-medium text-muted-foreground">Rol</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Registro</th>
-                <th className="px-4 py-3 text-right font-medium text-muted-foreground">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map(u => (
-                <tr key={u.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
-                  <td className="px-4 py-3 font-medium text-card-foreground">{u.full_name || '—'}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{u.phone || '—'}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{u.dni || '—'}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{u.cuil_cuit || '—'}</td>
-                  <td className="px-4 py-3 text-muted-foreground max-w-[160px] truncate">{u.address || '—'}</td>
-                  <td className="px-4 py-3 text-center">
-                    <button
-                      disabled={toggling === u.id}
-                      onClick={() => toggleRole(u.id, u.role || 'user', u.roleId)}
-                      className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium cursor-pointer transition-opacity hover:opacity-80 disabled:opacity-50 ${u.role === 'admin' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}
-                      title="Click para cambiar rol"
-                    >
-                      {toggling === u.id ? '...' : u.role === 'admin' ? 'Admin' : 'Usuario'}
-                    </button>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                    {new Date(u.created_at).toLocaleDateString('es-AR')}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => openEdit(u)}
-                      className="rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                      title="Editar datos"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </button>
-                  </td>
+            <table className="w-full font-body text-sm">
+              <thead>
+                <tr className="border-b border-border bg-muted/50">
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Nombre</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Teléfono</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">DNI</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">CUIL/CUIT</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Dirección</th>
+                  <th className="px-4 py-3 text-center font-medium text-muted-foreground">Rol</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Registro</th>
+                  <th className="px-4 py-3 text-right font-medium text-muted-foreground">Acciones</th>
                 </tr>
-              ))}
-              {users.length === 0 && (
-                <tr><td colSpan={8} className="px-4 py-12 text-center text-muted-foreground">No hay usuarios registrados</td></tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {users.map(u => (
+                  <tr key={u.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
+                    <td className="px-4 py-3 font-medium text-card-foreground">{u.full_name || '—'}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{u.phone || '—'}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{u.dni || '—'}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{u.cuil_cuit || '—'}</td>
+                    <td className="px-4 py-3 text-muted-foreground max-w-[160px] truncate">{u.address || '—'}</td>
+                    <td className="px-4 py-3 text-center">
+                      <button
+                        disabled={toggling === u.id}
+                        onClick={() => toggleRole(u.id, u.role || 'user', u.roleId)}
+                        className={`rounded-full px-2.5 py-0.5 text-xs font-medium cursor-pointer transition-opacity hover:opacity-80 disabled:opacity-50 ${u.role === 'admin' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}
+                      >
+                        {toggling === u.id ? '...' : u.role === 'admin' ? 'Admin' : 'Usuario'}
+                      </button>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{new Date(u.created_at).toLocaleDateString('es-AR')}</td>
+                    <td className="px-4 py-3 text-right">
+                      <button onClick={() => openEdit(u)} className="rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {users.length === 0 && (
+                  <tr><td colSpan={8} className="px-4 py-12 text-center text-muted-foreground">No hay usuarios registrados</td></tr>
+                )}
+              </tbody>
+            </table>
           </div>
+        </>
       )}
 
-      {/* Edit modal */}
       <Dialog open={!!editing} onOpenChange={(open) => !open && setEditing(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -178,7 +158,7 @@ const AdminUsers = () => {
               { label: 'Teléfono', key: 'phone', placeholder: '+54 11 1234-5678' },
               { label: 'DNI', key: 'dni', placeholder: '12345678' },
               { label: 'CUIL/CUIT', key: 'cuil_cuit', placeholder: '20-12345678-9' },
-              { label: 'Dirección', key: 'address', placeholder: 'Av. Corrientes 1234, CABA' },
+              { label: 'Dirección', key: 'address', placeholder: 'Av. Corrientes 1234' },
             ].map(({ label, key, placeholder }) => (
               <div key={key}>
                 <label className="font-body text-sm text-muted-foreground">{label}</label>
@@ -192,17 +172,10 @@ const AdminUsers = () => {
             ))}
           </div>
           <div className="flex justify-end gap-2 pt-2">
-            <button
-              onClick={() => setEditing(null)}
-              className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 font-body text-sm hover:bg-muted transition-colors"
-            >
+            <button onClick={() => setEditing(null)} className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 font-body text-sm hover:bg-muted transition-colors">
               <X className="h-4 w-4" /> Cancelar
             </button>
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-body text-sm font-semibold text-white hover:bg-primary/85 transition-colors disabled:opacity-50"
-            >
+            <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-body text-sm font-semibold text-white hover:bg-primary/85 transition-colors disabled:opacity-50">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Guardar
             </button>
