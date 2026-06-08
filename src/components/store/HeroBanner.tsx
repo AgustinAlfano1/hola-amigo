@@ -12,7 +12,7 @@ const HeroBanner = ({ searchTerm, onSearchChange }: HeroBannerProps) => {
       style={{ background: 'var(--gradient-hero)' }}
     >
       {/* Decorative elements */}
-      <div className="absolute inset-0 opacity-5">
+      <div className="absolute inset-0 opacity-5 pointer-events-none">
         <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-primary/30 to-transparent" />
       </div>
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />

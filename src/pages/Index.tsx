@@ -68,16 +68,28 @@ const Index = () => {
   }, [promotions]);
 
   const brands = useMemo(() => {
-    const set = new Set(products.map(p => p.brand).filter(Boolean) as string[]);
-    return Array.from(set).sort();
+    const seen = new Map<string, string>();
+    products.forEach(p => {
+      if (p.brand) {
+        const key = p.brand.trim().toUpperCase();
+        if (!seen.has(key)) seen.set(key, p.brand.trim());
+      }
+    });
+    return Array.from(seen.values()).sort();
   }, [products]);
 
   const availableCategories = useMemo(() => {
     const pool = selectedBrands.length > 0
       ? products.filter(p => p.brand && selectedBrands.includes(p.brand))
       : products;
-    const set = new Set(pool.map(p => p.category).filter(Boolean) as string[]);
-    return Array.from(set).sort();
+    const seen = new Map<string, string>();
+    pool.forEach(p => {
+      if (p.category) {
+        const key = p.category.trim().toUpperCase();
+        if (!seen.has(key)) seen.set(key, p.category.trim());
+      }
+    });
+    return Array.from(seen.values()).sort();
   }, [products, selectedBrands]);
 
   const handleBrandsChange = (newBrands: string[]) => {

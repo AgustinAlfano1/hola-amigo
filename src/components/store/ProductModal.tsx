@@ -1,5 +1,6 @@
 import { X, ShoppingCart, Tag, MessageCircle, Package, CheckCircle, AlertCircle, Zap } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
+import { useEffect } from 'react';
 import type { DBProduct } from '@/hooks/useProducts';
 import type { Promotion } from '@/hooks/usePromotions';
 import CountdownTimer from './CountdownTimer';
@@ -13,7 +14,15 @@ interface ProductModalProps {
 const WHATSAPP_NUMBER = '5491149989332';
 
 const ProductModal = ({ product, promotion, onClose }: ProductModalProps) => {
-  const { addToCart } = useCart();
+  const { addToCart, setIsOpen: openCart } = useCart();
+
+  // Cerrar con Escape
+  useEffect(() => {
+    if (!product) return;
+    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [product, onClose]);
 
   if (!product) return null;
 
@@ -33,10 +42,18 @@ const ProductModal = ({ product, promotion, onClose }: ProductModalProps) => {
 
   return (
     <>
+      {/* Backdrop — z-50, clickeable */}
       <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="relative flex w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl md:flex-row max-h-[90vh]">
-          <button onClick={onClose} className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/60">
+      {/* Contenedor del modal — z-[51], pointer-events-none para que los clicks en los bordes pasen al backdrop */}
+      <div className="fixed inset-0 z-[51] flex items-center justify-center p-4 pointer-events-none">
+        <div
+          className="relative flex w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl md:flex-row max-h-[90vh] pointer-events-auto"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={onClose}
+            className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/60"
+          >
             <X className="h-4 w-4" />
           </button>
 
@@ -126,7 +143,7 @@ const ProductModal = ({ product, promotion, onClose }: ProductModalProps) => {
             {/* Actions */}
             <div className="mt-auto flex flex-col gap-3">
               <button
-                onClick={() => { addToCart({ ...product, price: activePrice }); onClose(); }}
+                onClick={() => { addToCart({ ...product, price: activePrice }); onClose(); openCart(true); }}
                 disabled={outOfStock}
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 font-heading text-sm font-bold tracking-widest text-white transition-all hover:bg-primary/85 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
               >

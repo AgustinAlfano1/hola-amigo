@@ -140,7 +140,7 @@ const Contact = () => {
                 </div>
                 <div>
                   <h3 className="font-heading text-sm font-bold tracking-wider text-foreground">Ubicación</h3>
-                  <p className="font-body text-xs text-muted-foreground">DLS Repuestos</p>
+                  <p className="font-body text-xs text-muted-foreground">FIAT Morón</p>
                 </div>
               </div>
               <p className="font-body text-base font-medium text-foreground mb-1">Av. Hipólito Yrigoyen 510</p>
