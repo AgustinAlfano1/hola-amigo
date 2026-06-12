@@ -83,7 +83,7 @@ serve(async (req) => {
     if (itemsError) throw new Error(`Error creating order items: ${itemsError.message}`);
 
     // Create MP preference
-    const siteUrl = req.headers.get("origin") || "https://id-preview--185c751d-d9c5-483e-a821-79c1f91a5ef0.lovable.app";
+    const siteUrl = req.headers.get("origin") || "https://fiatmoron.com.ar";
 
     const mpItems = items.map((item: any) => ({
       title: item.name,
