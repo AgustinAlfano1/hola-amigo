@@ -23,7 +23,6 @@ serve(async (req) => {
     const body = await req.json();
     console.log("MP Webhook received:", JSON.stringify(body));
 
-    // MP sends different notification types
     if (body.type === "payment" || body.action === "payment.updated" || body.action === "payment.created") {
       const paymentId = body.data?.id;
       if (!paymentId) {
@@ -33,7 +32,6 @@ serve(async (req) => {
         });
       }
 
-      // Fetch payment details from MP
       const paymentResponse = await fetch(
         `https://api.mercadopago.com/v1/payments/${paymentId}`,
         { headers: { Authorization: `Bearer ${MP_ACCESS_TOKEN}` } }
@@ -43,21 +41,15 @@ serve(async (req) => {
       console.log("Payment details:", JSON.stringify(payment));
 
       const orderId = payment.external_reference;
-      const paymentStatus = payment.status; // approved, pending, rejected, etc.
+      const paymentStatus = payment.status;
 
       if (orderId) {
-        // Map MP status to our status
         let orderStatus = "pending";
         if (paymentStatus === "approved") orderStatus = "confirmed";
         else if (paymentStatus === "rejected" || paymentStatus === "cancelled") orderStatus = "cancelled";
 
-        // Update order status
-        await supabase
-          .from("orders")
-          .update({ status: orderStatus })
-          .eq("id", orderId);
+        await supabase.from("orders").update({ status: orderStatus }).eq("id", orderId);
 
-        // Get order details for notification
         const { data: order } = await supabase
           .from("orders")
           .select("*")
@@ -65,26 +57,44 @@ serve(async (req) => {
           .single();
 
         if (order) {
-          // Get customer name
+          // Traer perfil completo del cliente
           const { data: profile } = await supabase
             .from("profiles")
-            .select("full_name")
+            .select("full_name, dni, cuil_cuit, phone, address")
             .eq("id", order.user_id)
             .single();
+
+          // Traer items del pedido
+          const { data: orderItems } = await supabase
+            .from("order_items")
+            .select("product_name, product_brand, quantity, price_at_purchase")
+            .eq("order_id", orderId);
 
           const customerName = profile?.full_name || "Cliente";
           const total = Number(order.total_amount).toLocaleString("es-AR");
 
-          // Create notification for admin
           const statusText =
             orderStatus === "confirmed" ? "✅ Pago aprobado" :
             orderStatus === "cancelled" ? "❌ Pago rechazado" :
             "⏳ Pago pendiente";
 
+          const itemsList = (orderItems || [])
+            .map((i: any) => `${i.quantity}x ${i.product_name}${i.product_brand ? ` (${i.product_brand})` : ""} - $${Number(i.price_at_purchase).toLocaleString("es-AR")}`)
+            .join(" | ");
+
+          const message = [
+            `${customerName} - Total: $${total}`,
+            profile?.phone ? `Tel: ${profile.phone}` : null,
+            profile?.dni ? `DNI: ${profile.dni}` : null,
+            profile?.cuil_cuit ? `CUIL/CUIT: ${profile.cuil_cuit}` : null,
+            profile?.address ? `Dirección: ${profile.address}` : null,
+            itemsList ? `Productos: ${itemsList}` : null,
+          ].filter(Boolean).join(" | ");
+
           await supabase.from("notifications").insert({
             type: "order",
-            title: `${statusText}`,
-            message: `${customerName} - Pedido por $${total}`,
+            title: statusText,
+            message,
             order_id: orderId,
           });
         }
