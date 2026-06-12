@@ -56,6 +56,7 @@ const AdminOrders = () => {
     const { data } = await supabase
       .from('orders')
       .select('*')
+      .not('status', 'in', '("delivered","cancelled")')
       .order('created_at', { ascending: false });
 
     if (data) {
@@ -97,23 +98,22 @@ const AdminOrders = () => {
     toast({ title: `Estado actualizado a "${statusLabels[status]}"` });
     fetchOrders();
 
-    if (status === 'shipped' || status === 'delivered') {
-      try {
-        const { data: sessionData } = await supabase.auth.getSession();
-        const token = sessionData?.session?.access_token;
-        const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-        const res = await fetch(
-          `https://${projectId}.supabase.co/functions/v1/send-order-status-email`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-            body: JSON.stringify({ order_id: id, status }),
-          }
-        );
-        if (res.ok) toast({ title: `📧 Email de "${statusLabels[status]}" enviado al cliente` });
-      } catch (e) {
-        console.error('Error sending status email:', e);
-      }
+    // Enviar email para todos los cambios de estado
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const res = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/send-order-status-email`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ order_id: id, status }),
+        }
+      );
+      if (res.ok) toast({ title: `📧 Email de "${statusLabels[status]}" enviado al cliente` });
+    } catch (e) {
+      console.error('Error sending status email:', e);
     }
   };
 

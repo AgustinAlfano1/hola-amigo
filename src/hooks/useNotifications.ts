@@ -44,10 +44,21 @@ export const useNotifications = () => {
   useEffect(() => {
     fetchNotifications();
 
-    // Poll for new notifications every 30 seconds
+    // Realtime: aparece instantáneo cuando llega un pago
+    const channel = supabase
+      .channel('notifications-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'notifications' },
+        () => { fetchNotifications(); }
+      )
+      .subscribe();
+
+    // Poll de respaldo cada 30 segundos
     const interval = setInterval(fetchNotifications, 30000);
 
     return () => {
+      supabase.removeChannel(channel);
       clearInterval(interval);
     };
   }, []);
