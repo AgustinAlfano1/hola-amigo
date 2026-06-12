@@ -105,7 +105,7 @@ serve(async (req) => {
     `;
 
     const { error: emailError } = await resend.emails.send({
-      from: "FIAT Morón <onboarding@resend.dev>",
+      from: "FIAT Morón <notificaciones@fiatmoron.com.ar>",
       to: [email],
       subject: cfg.subject,
       html,
