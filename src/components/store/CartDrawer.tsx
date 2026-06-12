@@ -41,7 +41,7 @@ const CartDrawer = () => {
 
       if (error) throw error;
 
-      const redirectUrl = data.sandbox_init_point || data.init_point;
+      const redirectUrl = data.init_point || data.sandbox_init_point;
       if (redirectUrl) {
         clearCart();
         setIsOpen(false);
