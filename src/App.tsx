@@ -20,7 +20,7 @@ import Promociones from "./pages/Promociones";
 import ResetPassword from "./pages/ResetPassword";
 import EmailConfirmed from "./pages/EmailConfirmed";
 import Checkout from "./pages/Checkout";
-import AdminShippingRates from "./pages/admin/AdminShippingRates";
+import AdminOrderHistory from "./pages/admin/AdminOrderHistory";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +44,7 @@ const App = () => (
               <Route path="/admin/products" element={<AdminProducts />} />
               <Route path="/admin/promotions" element={<AdminPromotions />} />
               <Route path="/admin/orders" element={<AdminOrders />} />
+              <Route path="/admin/order-history" element={<AdminOrderHistory />} />
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/import" element={<AdminImportCSV />} />
               <Route path="/admin/import-images" element={<AdminImportImages />} />
