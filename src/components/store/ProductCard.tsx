@@ -78,10 +78,10 @@ const ProductCard = ({ product, promotion, onClick }: ProductCardProps) => {
           </span>
         )}
 
-        <h3 className="font-heading text-xs md:text-sm font-semibold leading-snug text-foreground line-clamp-2">
+        <h3 className="font-heading text-xs md:text-sm font-semibold leading-snug text-foreground line-clamp-2 min-h-[2.5rem]">
           {product.name}
         </h3>
-        <p className="mt-0.5 hidden md:block font-body text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+        <p className="mt-0.5 hidden md:block font-body text-xs text-muted-foreground leading-relaxed line-clamp-3 h-[3.75rem] overflow-hidden">
           {product.description}
         </p>
 
