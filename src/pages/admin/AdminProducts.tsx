@@ -19,6 +19,7 @@ const AdminProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [searchField, setSearchField] = useState('all');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState(emptyProduct);
@@ -29,10 +30,32 @@ const AdminProducts = () => {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const fetchProducts = async (searchTerm?: string) => {
+  const fetchProducts = async (searchTerm?: string, field?: string) => {
     setLoading(true);
     let query = supabase.from('products').select('*').order('created_at', { ascending: false });
-    if (searchTerm?.trim()) query = query.or(`name.ilike.%${searchTerm.trim()}%,brand.ilike.%${searchTerm.trim()}%`);
+    const term = searchTerm?.trim();
+    const f = field || searchField;
+    if (term) {
+      if (f === 'all') {
+        query = query.or(`name.ilike.%${term}%,brand.ilike.%${term}%,category.ilike.%${term}%,codigo.ilike.%${term}%,description.ilike.%${term}%`);
+      } else if (f === 'name') {
+        query = query.ilike('name', `%${term}%`);
+      } else if (f === 'brand') {
+        query = query.ilike('brand', `%${term}%`);
+      } else if (f === 'category') {
+        query = query.ilike('category', `%${term}%`);
+      } else if (f === 'codigo') {
+        query = query.ilike('codigo', `%${term}%`);
+      } else if (f === 'description') {
+        query = query.ilike('description', `%${term}%`);
+      } else if (f === 'price') {
+        const num = Number(term);
+        if (!isNaN(num)) query = query.eq('price', num);
+      } else if (f === 'stock') {
+        const num = Number(term);
+        if (!isNaN(num)) query = query.eq('stock_quantity', num);
+      }
+    }
     const { data } = await query;
     setProducts(data || []);
     setLoading(false);
@@ -40,9 +63,9 @@ const AdminProducts = () => {
 
   useEffect(() => { fetchProducts(); }, []);
   useEffect(() => {
-    const t = setTimeout(() => fetchProducts(search), 300);
+    const t = setTimeout(() => fetchProducts(search, searchField), 300);
     return () => clearTimeout(t);
-  }, [search]);
+  }, [search, searchField]);
 
   const openCreate = () => { setEditing(null); setForm(emptyProduct); setImagePreview(null); setDialogOpen(true); };
   const openEdit = (p: Product) => {
@@ -116,10 +139,36 @@ const AdminProducts = () => {
       </div>
 
       {/* Search */}
-      <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <input type="text" placeholder="Buscar producto o marca..." value={search} onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-lg border border-input bg-background pl-9 pr-3 py-2 font-body text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
+      <div className="flex gap-2 mb-4">
+        <select
+          value={searchField}
+          onChange={e => { setSearchField(e.target.value); setSearch(''); }}
+          className="rounded-lg border border-input bg-background px-3 py-2 font-body text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring shrink-0"
+        >
+          <option value="all">Todos los campos</option>
+          <option value="name">Nombre</option>
+          <option value="codigo">Código</option>
+          <option value="brand">Marca</option>
+          <option value="category">Categoría</option>
+          <option value="description">Descripción</option>
+          <option value="price">Precio exacto</option>
+          <option value="stock">Stock exacto</option>
+        </select>
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type={searchField === 'price' || searchField === 'stock' ? 'number' : 'text'}
+            placeholder={
+              searchField === 'all' ? 'Buscar en todos los campos...' :
+              searchField === 'price' ? 'Ej: 15000' :
+              searchField === 'stock' ? 'Ej: 5' :
+              `Buscar por ${searchField === 'name' ? 'nombre' : searchField === 'codigo' ? 'código' : searchField === 'brand' ? 'marca' : searchField === 'category' ? 'categoría' : 'descripción'}...`
+            }
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full rounded-lg border border-input bg-background pl-9 pr-3 py-2 font-body text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
       </div>
 
       {loading ? (
