@@ -69,22 +69,22 @@ serve(async (req) => {
       confirmed: {
         subject: "✅ Tu pedido fue confirmado",
         icon: "✅", color: "#2563eb", title: "Pedido confirmado",
-        body: `Tu pedido por <strong style="color:#b91c1c;">$${total}</strong> fue <strong>confirmado</strong> y está en proceso de armado. En breve te avisamos cuando esté listo para envío.`,
+        body: `Tu compra fue procesada exitosamente y ya estamos preparando tu pedido. Te notificaremos cuando esté listo para el despacho.`,
       },
       shipped: {
         subject: "🚚 Tu pedido está en camino",
         icon: "🚚", color: "#7c3aed", title: "Pedido enviado",
-        body: `Tu pedido por <strong style="color:#b91c1c;">$${total}</strong> ya fue <strong>enviado</strong> y está en camino. Llegará en el día de hoy. ¡Estate atento!`,
+        body: `Tu pedido está en camino. Nuestro equipo lo despachó y será entregado a la brevedad. Ante cualquier consulta sobre la entrega, no dudes en contactarnos.`,
       },
       delivered: {
         subject: "📦 Tu pedido fue entregado",
         icon: "📦", color: "#16a34a", title: "Pedido entregado",
-        body: `Tu pedido por <strong style="color:#b91c1c;">$${total}</strong> fue <strong>entregado</strong> correctamente. ¡Gracias por tu compra! Esperamos que disfrutes tu producto.`,
+        body: `Tu pedido fue entregado correctamente. ¡Gracias por elegirnos! Si necesitás algo más, recordá que estamos disponibles para cualquier consulta.`,
       },
       cancelled: {
         subject: "❌ Tu pedido fue cancelado",
         icon: "❌", color: "#dc2626", title: "Pedido cancelado",
-        body: `Lamentamos informarte que tu pedido por <strong style="color:#b91c1c;">$${total}</strong> fue <strong>cancelado</strong>. Si tenés alguna duda, contactanos por WhatsApp.`,
+        body: `Lamentamos informarte que tu pedido fue cancelado. Si creés que es un error o querés realizar un nuevo pedido, contactanos por WhatsApp y con gusto te atendemos.`,
       },
     };
 
