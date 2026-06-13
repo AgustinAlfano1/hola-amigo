@@ -74,7 +74,7 @@ const AdminShippingRates = () => {
 
     const toUpsert = dataLines
       .map(line => {
-        const cols = line.split(separator).map(c => c.trim().replace(/"/g, ''));
+        const cols = line.trim().split(separator).map(c => c.trim().replace(/"/g, ''));
         const postal_code = cols[0];
         const zone_name = cols.length >= 3 ? cols[1] : null;
         const cost = cols.length >= 3 ? Number(cols[2]) : Number(cols[1]);
