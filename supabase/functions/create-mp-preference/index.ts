@@ -85,6 +85,7 @@ serve(async (req) => {
     // Insert order items
     const orderItems = items.map((item: any) => ({
       order_id: order.id,
+      product_id: item.id || null,
       product_name: item.name,
       product_brand: item.brand || null,
       quantity: item.quantity,

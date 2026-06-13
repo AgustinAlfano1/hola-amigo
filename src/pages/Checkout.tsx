@@ -119,6 +119,7 @@ const Checkout = () => {
     try {
       const payload = {
         items: items.map(({ product, quantity }) => ({
+          id: product.id,
           name: product.name,
           brand: product.brand,
           price: product.price,

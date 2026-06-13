@@ -58,11 +58,34 @@ serve(async (req) => {
           .single();
 
         if (order) {
-          // Traer items del pedido
+          // Traer items del pedido (con product_id para descontar stock)
           const { data: orderItems } = await supabase
             .from("order_items")
-            .select("product_name, product_brand, quantity, price_at_purchase")
+            .select("product_name, product_brand, quantity, price_at_purchase, product_id")
             .eq("order_id", orderId);
+
+          // Descontar stock solo si el pago fue aprobado
+          if (paymentStatus === "approved" && orderItems) {
+            for (const item of orderItems) {
+              if (!item.product_id) continue;
+              // Leer stock actual
+              const { data: product } = await supabase
+                .from("products")
+                .select("stock_quantity")
+                .eq("id", item.product_id)
+                .single();
+              if (product) {
+                const newStock = Math.max(0, (product.stock_quantity || 0) - item.quantity);
+                await supabase
+                  .from("products")
+                  .update({
+                    stock_quantity: newStock,
+                    in_stock: newStock > 0,
+                  })
+                  .eq("id", item.product_id);
+              }
+            }
+          }
 
           // Traer teléfono del perfil
           const { data: profile } = await supabase
