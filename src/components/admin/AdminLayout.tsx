@@ -97,9 +97,8 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
             </div>
             <span className="font-heading text-base font-bold tracking-wider">Admin Panel</span>
           </div>
-          <NotificationsBell />
+          <NotificationsBell align="left" />
         </div>
-        <SidebarContent />
       </aside>
 
       {/* MOBILE overlay sidebar */}
