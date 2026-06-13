@@ -53,8 +53,8 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
   };
 
   const SidebarContent = () => (
-    <>
-      <nav className="flex-1 space-y-1 p-3">
+    <div className="flex flex-col flex-1 overflow-hidden">
+      <nav className="flex-1 overflow-y-auto space-y-1 p-3">
         {navItems.map((item) => {
           const active = location.pathname === item.path;
           const isPromo = item.path === '/admin/promotions';
@@ -74,7 +74,7 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
           );
         })}
       </nav>
-      <div className="space-y-1 border-t border-sidebar-border p-3">
+      <div className="shrink-0 space-y-1 border-t border-sidebar-border p-3">
         <button onClick={() => handleNav('/')} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 font-body text-sm text-primary transition-colors hover:bg-sidebar-accent">
           <ArrowLeft className="h-4 w-4" /> Volver a la tienda
         </button>
@@ -82,7 +82,7 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
           <LogOut className="h-4 w-4" /> Cerrar sesión
         </button>
       </div>
-    </>
+    </div>
   );
 
   return (
