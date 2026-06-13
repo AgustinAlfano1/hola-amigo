@@ -99,6 +99,7 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
           </div>
           <NotificationsBell align="left" />
         </div>
+        <SidebarContent />
       </aside>
 
       {/* MOBILE overlay sidebar */}
