@@ -57,20 +57,20 @@ serve(async (req) => {
           .single();
 
         if (order) {
-          // Traer perfil completo del cliente
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("full_name, dni, cuil_cuit, phone, address")
-            .eq("id", order.user_id)
-            .single();
-
           // Traer items del pedido
           const { data: orderItems } = await supabase
             .from("order_items")
             .select("product_name, product_brand, quantity, price_at_purchase")
             .eq("order_id", orderId);
 
-          const customerName = profile?.full_name || "Cliente";
+          // Traer teléfono del perfil
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("phone")
+            .eq("id", order.user_id)
+            .single();
+
+          const customerName = order.billing_name || "Cliente";
           const total = Number(order.total_amount).toLocaleString("es-AR");
 
           const statusText =
@@ -82,12 +82,16 @@ serve(async (req) => {
             .map((i: any) => `${i.quantity}x ${i.product_name}${i.product_brand ? ` (${i.product_brand})` : ""} - $${Number(i.price_at_purchase).toLocaleString("es-AR")}`)
             .join(" | ");
 
+          const deliveryText = order.delivery_type === "shipping"
+            ? `Envío: ${order.shipping_address || ""} (CP: ${order.shipping_postal_code || ""})`
+            : "Retiro en local";
+
           const message = [
             `${customerName} - Total: $${total}`,
             profile?.phone ? `Tel: ${profile.phone}` : null,
-            profile?.dni ? `DNI: ${profile.dni}` : null,
-            profile?.cuil_cuit ? `CUIL/CUIT: ${profile.cuil_cuit}` : null,
-            profile?.address ? `Dirección: ${profile.address}` : null,
+            order.billing_dni_cuit ? `DNI/CUIT: ${order.billing_dni_cuit}` : null,
+            order.invoice_type === "factura_a" ? "Factura A" : "Consumidor Final",
+            deliveryText,
             itemsList ? `Productos: ${itemsList}` : null,
           ].filter(Boolean).join(" | ");
 

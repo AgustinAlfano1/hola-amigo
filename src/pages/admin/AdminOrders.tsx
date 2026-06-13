@@ -35,6 +35,7 @@ interface Order {
   user_id: string;
   billing_name: string | null;
   billing_dni_cuit: string | null;
+  invoice_type: string | null;
   delivery_type: string | null;
   shipping_address: string | null;
   shipping_postal_code: string | null;
@@ -162,6 +163,7 @@ const AdminOrders = () => {
                     <div className="space-y-1 font-body text-sm">
                       {o.billing_name && <p><span className="text-muted-foreground">Nombre:</span> {o.billing_name}</p>}
                       {o.billing_dni_cuit && <p><span className="text-muted-foreground">DNI/CUIT:</span> {o.billing_dni_cuit}</p>}
+                      <p><span className="text-muted-foreground">Facturación:</span> {o.invoice_type === 'factura_a' ? '🧾 Factura A' : '🧾 Consumidor Final'}</p>
                     </div>
 
                     <h4 className="font-body text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 mt-4">Entrega</h4>

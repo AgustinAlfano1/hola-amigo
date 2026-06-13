@@ -10,7 +10,7 @@ const AdminDashboard = () => {
     const fetchStats = async () => {
       const [productsRes, ordersRes, usersRes] = await Promise.all([
         supabase.from('products').select('id', { count: 'exact', head: true }),
-        supabase.from('orders').select('id, total_amount'),
+        supabase.from('orders').select('id, total_amount').not('status', 'in', '(delivered,cancelled)'),
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
       ]);
 
