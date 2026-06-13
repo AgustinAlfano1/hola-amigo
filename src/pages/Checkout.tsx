@@ -24,6 +24,7 @@ const Checkout = () => {
   const [form, setForm] = useState({
     billing_name: '',
     billing_dni_cuit: '',
+    invoice_type: 'consumidor_final' as 'consumidor_final' | 'factura_a',
     address_street: '',
     address_number: '',
     address_between: '',
@@ -104,7 +105,8 @@ const Checkout = () => {
 
   const handleSubmit = async () => {
     if (!form.billing_name.trim()) { toast({ title: 'Ingresá tu nombre completo', variant: 'destructive' }); return; }
-    if (!form.billing_dni_cuit.trim()) { toast({ title: 'Ingresá tu DNI o CUIT', variant: 'destructive' }); return; }
+    if (!form.billing_dni_cuit.trim()) { toast({ title: `Ingresá tu ${form.invoice_type === 'factura_a' ? 'CUIT' : 'DNI o CUIT'}`, variant: 'destructive' }); return; }
+    if (form.invoice_type === 'factura_a' && form.billing_dni_cuit.length !== 11) { toast({ title: 'El CUIT debe tener exactamente 11 dígitos sin guiones', variant: 'destructive' }); return; }
     if (deliveryType === 'shipping') {
       if (!form.address_street.trim()) { toast({ title: 'Ingresá la calle', variant: 'destructive' }); return; }
       if (!form.address_number.trim()) { toast({ title: 'Ingresá el número', variant: 'destructive' }); return; }
@@ -130,6 +132,7 @@ const Checkout = () => {
         shipping_postal_code: deliveryType === 'shipping' ? form.postal_code : null,
         billing_name: form.billing_name,
         billing_dni_cuit: form.billing_dni_cuit,
+        invoice_type: form.invoice_type,
       };
 
       const { data, error } = await supabase.functions.invoke('create-mp-preference', { body: payload });
@@ -177,14 +180,54 @@ const Checkout = () => {
                   />
                 </div>
                 <div>
-                  <label className="font-body text-sm font-medium text-foreground">DNI / CUIT *</label>
+                  <label className="font-body text-sm font-medium text-foreground mb-2 block">Tipo de factura *</label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="invoice_type"
+                        value="consumidor_final"
+                        checked={form.invoice_type === 'consumidor_final'}
+                        onChange={() => setForm(f => ({ ...f, invoice_type: 'consumidor_final', billing_dni_cuit: '' }))}
+                        className="accent-primary w-4 h-4"
+                      />
+                      <span className="font-body text-sm text-foreground">Consumidor Final</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="invoice_type"
+                        value="factura_a"
+                        checked={form.invoice_type === 'factura_a'}
+                        onChange={() => setForm(f => ({ ...f, invoice_type: 'factura_a', billing_dni_cuit: '' }))}
+                        className="accent-primary w-4 h-4"
+                      />
+                      <span className="font-body text-sm text-foreground">Factura A</span>
+                    </label>
+                  </div>
+                </div>
+                <div>
+                  <label className="font-body text-sm font-medium text-foreground">
+                    {form.invoice_type === 'factura_a' ? 'CUIT *' : 'DNI / CUIT *'}
+                  </label>
+                  {form.invoice_type === 'factura_a' && (
+                    <p className="font-body text-xs text-muted-foreground mt-0.5">Solo CUIT, 11 dígitos sin guiones</p>
+                  )}
                   <input
                     type="text"
                     value={form.billing_dni_cuit}
-                    onChange={e => setForm(f => ({ ...f, billing_dni_cuit: e.target.value }))}
-                    placeholder="20-12345678-9"
+                    onChange={e => {
+                      const val = e.target.value.replace(/\D/g, '');
+                      const max = form.invoice_type === 'factura_a' ? 11 : 11;
+                      if (val.length <= max) setForm(f => ({ ...f, billing_dni_cuit: val }));
+                    }}
+                    placeholder={form.invoice_type === 'factura_a' ? '20123456789' : '12345678'}
+                    maxLength={11}
                     className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2.5 font-body text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                   />
+                  {form.invoice_type === 'factura_a' && form.billing_dni_cuit.length > 0 && form.billing_dni_cuit.length < 11 && (
+                    <p className="mt-1 font-body text-xs text-destructive">El CUIT debe tener 11 dígitos ({form.billing_dni_cuit.length}/11)</p>
+                  )}
                 </div>
               </div>
             </div>
