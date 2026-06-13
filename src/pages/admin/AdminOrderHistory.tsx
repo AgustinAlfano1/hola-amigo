@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { useToast } from '@/hooks/use-toast';
-import { Trash2, ChevronDown, ChevronUp, Package } from 'lucide-react';
+import { Trash2, ChevronDown, ChevronUp, Package, ChevronLeft, ChevronRight } from 'lucide-react';
+
+const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
 const statusLabels: Record<string, string> = {
   delivered: 'Entregado',
@@ -37,6 +39,9 @@ interface Order {
 }
 
 const AdminOrderHistory = () => {
+  const now = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -46,12 +51,27 @@ const AdminOrderHistory = () => {
   const formatPrice = (n: number) =>
     new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n);
 
+  const isCurrentMonth = selectedMonth === now.getMonth() && selectedYear === now.getFullYear();
+
+  const prevMonth = () => {
+    if (selectedMonth === 0) { setSelectedMonth(11); setSelectedYear(y => y - 1); }
+    else setSelectedMonth(m => m - 1);
+  };
+  const nextMonth = () => {
+    if (selectedMonth === 11) { setSelectedMonth(0); setSelectedYear(y => y + 1); }
+    else setSelectedMonth(m => m + 1);
+  };
+
   const fetchOrders = async () => {
     setLoading(true);
+    const from = new Date(selectedYear, selectedMonth, 1).toISOString();
+    const to = new Date(selectedYear, selectedMonth + 1, 1).toISOString();
     const { data } = await supabase
       .from('orders')
       .select('*')
       .in('status', ['delivered', 'cancelled'])
+      .gte('created_at', from)
+      .lt('created_at', to)
       .order('created_at', { ascending: false });
 
     if (data) {
@@ -69,7 +89,7 @@ const AdminOrderHistory = () => {
     setLoading(false);
   };
 
-  useEffect(() => { fetchOrders(); }, []);
+  useEffect(() => { fetchOrders(); }, [selectedMonth, selectedYear]);
 
   const handleDelete = async (id: string) => {
     setDeleting(id);
@@ -92,14 +112,25 @@ const AdminOrderHistory = () => {
           <h2 className="font-heading text-2xl font-bold text-foreground mb-1">Ingresos</h2>
           <p className="font-body text-sm text-muted-foreground">Historial de pedidos entregados y cancelados</p>
         </div>
-        {!loading && orders.length > 0 && (
-          <div className="rounded-xl border border-border bg-card px-5 py-3 text-right">
-            <p className="font-body text-xs text-muted-foreground">Total entregado</p>
-            <p className="font-heading text-xl font-bold text-foreground">
-              {formatPrice(orders.filter(o => o.status === 'delivered').reduce((sum, o) => sum + Number(o.total_amount), 0))}
-            </p>
+        <div className="rounded-xl border border-border bg-card px-5 py-3 text-right">
+          {/* Selector de mes */}
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <button onClick={prevMonth} className="rounded p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <span className="font-body text-xs text-muted-foreground whitespace-nowrap">
+              {MONTHS[selectedMonth]} {selectedYear}
+              {isCurrentMonth && <span className="ml-1 text-primary">●</span>}
+            </span>
+            <button onClick={nextMonth} disabled={isCurrentMonth} className="rounded p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+              <ChevronRight className="h-4 w-4" />
+            </button>
           </div>
-        )}
+          <p className="font-body text-xs text-muted-foreground">Total entregado</p>
+          <p className="font-heading text-xl font-bold text-foreground">
+            {formatPrice(orders.filter(o => o.status === 'delivered').reduce((sum, o) => sum + Number(o.total_amount), 0))}
+          </p>
+        </div>
       </div>
 
       {loading ? (
