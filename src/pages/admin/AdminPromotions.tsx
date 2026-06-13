@@ -35,11 +35,10 @@ const AdminPromotions = () => {
     if (term.trim().length < 1) { setSearchResults([]); setShowDropdown(false); return; }
     setSearching(true);
     setShowDropdown(true);
-    const term = search.trim();
     const { data } = await supabase
       .from('products')
       .select('*')
-      .ilike('name', `%${term}%`)
+      .ilike('name', `%${term.trim()}%`)
       .order('name')
       .limit(20);
     setSearchResults(data || []);
