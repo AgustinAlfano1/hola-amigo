@@ -21,6 +21,7 @@ import ResetPassword from "./pages/ResetPassword";
 import EmailConfirmed from "./pages/EmailConfirmed";
 import Checkout from "./pages/Checkout";
 import AdminOrderHistory from "./pages/admin/AdminOrderHistory";
+import AdminShippingRates from "./pages/admin/AdminShippingRates";
 
 const queryClient = new QueryClient();
 
