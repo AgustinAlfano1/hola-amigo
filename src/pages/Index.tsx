@@ -16,7 +16,7 @@ import type { SortOption } from '@/components/store/SortBar';
 import type { DBProduct } from '@/hooks/useProducts';
 import { ChevronLeft, ChevronRight, LayoutGrid } from 'lucide-react';
 
-const PAGE_SIZE = 14;
+
 
 const applySort = (products: DBProduct[], sort: SortOption) => {
   const arr = [...products];
@@ -39,6 +39,13 @@ const Index = () => {
   const [selectedProduct, setSelectedProduct] = useState<DBProduct | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [showAll, setShowAll] = useState(false);
+  const [pageSize, setPageSize] = useState(() => window.innerWidth < 768 ? 14 : 15);
+
+  useEffect(() => {
+    const handleResize = () => setPageSize(window.innerWidth < 768 ? 14 : 15);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const productsRef = useRef<HTMLDivElement>(null);
 
   // Sort & extra filters
@@ -179,12 +186,12 @@ const Index = () => {
     return applySort(result, sort);
   }, [products, selectedBrands, selectedCategories, sort, minPrice, maxPrice, onlyInStock, promotionMap]);
 
-  const totalPages = Math.ceil(filteredProducts.length / PAGE_SIZE);
+  const totalPages = Math.ceil(filteredProducts.length / pageSize);
 
   const visibleProducts = useMemo(() => {
     if (showAll) return filteredProducts;
-    const start = (currentPage - 1) * PAGE_SIZE;
-    return filteredProducts.slice(start, start + PAGE_SIZE);
+    const start = (currentPage - 1) * pageSize;
+    return filteredProducts.slice(start, start + pageSize);
   }, [filteredProducts, currentPage, showAll]);
 
   const selectedPromotion = selectedProduct ? promotionMap.get(selectedProduct.id) : undefined;
@@ -245,7 +252,7 @@ const Index = () => {
               <p className="font-body text-sm text-muted-foreground">
                 {showAll
                   ? `${filteredProducts.length} productos`
-                  : `${Math.min((currentPage - 1) * PAGE_SIZE + 1, filteredProducts.length || 1)}–${Math.min(currentPage * PAGE_SIZE, filteredProducts.length)} de ${filteredProducts.length} productos`
+                  : `${Math.min((currentPage - 1) * pageSize + 1, filteredProducts.length || 1)}–${Math.min(currentPage * pageSize, filteredProducts.length)} de ${filteredProducts.length} productos`
                 }
                 {promotions.length > 0 && (
                   <span className="ml-2 rounded-full bg-amber-500/15 px-2 py-0.5 font-body text-xs font-medium text-amber-600">
@@ -253,7 +260,7 @@ const Index = () => {
                   </span>
                 )}
               </p>
-              {filteredProducts.length > PAGE_SIZE && (
+              {filteredProducts.length > pageSize && (
                 <button
                   onClick={() => { setShowAll(v => !v); setCurrentPage(1); }}
                   className="flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 font-body text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
