@@ -382,8 +382,8 @@ const Checkout = () => {
               <h2 className="font-heading text-base font-bold uppercase tracking-wider text-foreground mb-4">Resumen del pedido</h2>
               <div className="space-y-3 mb-4">
                 {items.map(({ product, quantity }) => (
-                  <div key={product.id} className="flex items-center gap-3">
-                    <div className="h-12 w-12 shrink-0 rounded overflow-hidden bg-muted">
+                  <div key={product.id} className="flex items-center gap-2">
+                    <div className="h-10 w-10 shrink-0 rounded overflow-hidden bg-muted">
                       {product.image_url
                         ? <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />
                         : <Package className="h-full w-full p-2 text-muted-foreground" />
@@ -394,7 +394,7 @@ const Checkout = () => {
                       {product.brand && <p className="font-body text-[10px] text-muted-foreground">{product.brand}</p>}
                       <p className="font-body text-xs text-muted-foreground">x{quantity}</p>
                     </div>
-                    <span className="font-body text-sm font-semibold text-foreground whitespace-nowrap">
+                    <span className="font-body text-xs font-semibold text-foreground shrink-0">
                       {formatPrice(product.price * quantity)}
                     </span>
                   </div>

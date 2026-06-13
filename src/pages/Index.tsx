@@ -277,7 +277,7 @@ const Index = () => {
               <>
                 <div className="grid grid-cols-2 gap-2 md:gap-4 xl:grid-cols-3">
                   {visibleProducts.map((product, i) => (
-                    <div key={product.id} className="animate-fade-in" style={{ animationDelay: `${i * 30}ms` }}>
+                    <div key={product.id} className={`animate-fade-in${visibleProducts.length % 2 !== 0 && i === visibleProducts.length - 1 ? ' col-span-2 md:col-span-1' : ''}`} style={{ animationDelay: `${i * 30}ms` }}>
                       <ProductCard
                         product={product}
                         promotion={promotionMap.get(product.id)}
