@@ -40,7 +40,7 @@ const AdminShippingRates = () => {
       postal_code: newRate.postal_code.trim(),
       zone_name: newRate.zone_name.trim() || null,
       cost: Number(newRate.cost),
-    });
+    }, { onConflict: 'postal_code' });
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
@@ -90,7 +90,9 @@ const AdminShippingRates = () => {
       return;
     }
 
-    const { error } = await supabase.from('shipping_rates').upsert(toUpsert as any);
+    const { error } = await supabase
+      .from('shipping_rates')
+      .upsert(toUpsert as any, { onConflict: 'postal_code' });
     if (error) {
       toast({ title: 'Error al importar', description: error.message, variant: 'destructive' });
     } else {
