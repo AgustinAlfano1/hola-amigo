@@ -38,7 +38,7 @@ const AdminPromotions = () => {
     const { data } = await supabase
       .from('products')
       .select('*')
-      .or(`name.ilike.%${term}%,brand.ilike.%${term}%`)
+      .or(`name.ilike.*${term.trim()}*,brand.ilike.*${term.trim()}*,codigo.ilike.*${term.trim()}*`)
       .order('name')
       .limit(10);
     setSearchResults(data || []);
