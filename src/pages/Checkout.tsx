@@ -24,7 +24,10 @@ const Checkout = () => {
   const [form, setForm] = useState({
     billing_name: '',
     billing_dni_cuit: '',
-    address: '',
+    address_street: '',
+    address_number: '',
+    address_between: '',
+    address_city: '',
     postal_code: '',
     address_type: 'both' as 'billing_only' | 'both',
   });
@@ -103,7 +106,9 @@ const Checkout = () => {
     if (!form.billing_name.trim()) { toast({ title: 'Ingresá tu nombre completo', variant: 'destructive' }); return; }
     if (!form.billing_dni_cuit.trim()) { toast({ title: 'Ingresá tu DNI o CUIT', variant: 'destructive' }); return; }
     if (deliveryType === 'shipping') {
-      if (!form.address.trim()) { toast({ title: 'Ingresá tu dirección de envío', variant: 'destructive' }); return; }
+      if (!form.address_street.trim()) { toast({ title: 'Ingresá la calle', variant: 'destructive' }); return; }
+      if (!form.address_number.trim()) { toast({ title: 'Ingresá el número', variant: 'destructive' }); return; }
+      if (!form.address_city.trim()) { toast({ title: 'Ingresá la localidad', variant: 'destructive' }); return; }
       if (!form.postal_code.trim()) { toast({ title: 'El código postal es obligatorio para envíos', variant: 'destructive' }); return; }
       if (postalCodeStatus === 'not_found') { toast({ title: 'Código postal sin tarifa configurada. Contactanos por WhatsApp.', variant: 'destructive' }); return; }
     }
@@ -119,7 +124,9 @@ const Checkout = () => {
         })),
         shipping_cost: shippingCost,
         delivery_type: deliveryType,
-        shipping_address: deliveryType === 'shipping' ? form.address : null,
+        shipping_address: deliveryType === 'shipping'
+          ? [form.address_street, form.address_number, form.address_between ? `entre ${form.address_between}` : '', form.address_city].filter(Boolean).join(' ')
+          : null,
         shipping_postal_code: deliveryType === 'shipping' ? form.postal_code : null,
         billing_name: form.billing_name,
         billing_dni_cuit: form.billing_dni_cuit,
@@ -220,13 +227,50 @@ const Checkout = () => {
                       📋 La dirección ingresada se utilizará tanto para la <strong>facturación</strong> como para el <strong>envío</strong>.
                     </p>
                   </div>
+
+                  <p className="font-body text-sm font-semibold text-foreground">Dirección completa para el envío</p>
+
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="col-span-2">
+                      <label className="font-body text-sm font-medium text-foreground">Calle *</label>
+                      <input
+                        type="text"
+                        value={form.address_street}
+                        onChange={e => setForm(f => ({ ...f, address_street: e.target.value }))}
+                        placeholder="Av. Hipólito Yrigoyen"
+                        className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2.5 font-body text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-body text-sm font-medium text-foreground">Número *</label>
+                      <input
+                        type="text"
+                        value={form.address_number}
+                        onChange={e => setForm(f => ({ ...f, address_number: e.target.value }))}
+                        placeholder="510"
+                        className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2.5 font-body text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+                  </div>
+
                   <div>
-                    <label className="font-body text-sm font-medium text-foreground">Dirección completa *</label>
+                    <label className="font-body text-sm font-medium text-foreground">Entre calles</label>
                     <input
                       type="text"
-                      value={form.address}
-                      onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
-                      placeholder="Av. Ejemplo 1234, Piso 2, Depto B"
+                      value={form.address_between}
+                      onChange={e => setForm(f => ({ ...f, address_between: e.target.value }))}
+                      placeholder="Ej: Rivadavia y Perón"
+                      className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2.5 font-body text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-body text-sm font-medium text-foreground">Localidad *</label>
+                    <input
+                      type="text"
+                      value={form.address_city}
+                      onChange={e => setForm(f => ({ ...f, address_city: e.target.value }))}
+                      placeholder="Morón"
                       className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2.5 font-body text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
