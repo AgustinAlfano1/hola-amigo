@@ -87,8 +87,20 @@ const AdminOrderHistory = () => {
 
   return (
     <AdminLayout>
-      <h2 className="font-heading text-2xl font-bold text-foreground mb-2">Ingresos</h2>
-      <p className="font-body text-sm text-muted-foreground mb-6">Detalle de todos los pedidos entregados y cancelados</p>
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h2 className="font-heading text-2xl font-bold text-foreground mb-1">Ingresos</h2>
+          <p className="font-body text-sm text-muted-foreground">Historial de pedidos entregados y cancelados</p>
+        </div>
+        {!loading && orders.length > 0 && (
+          <div className="rounded-xl border border-border bg-card px-5 py-3 text-right">
+            <p className="font-body text-xs text-muted-foreground">Total entregado</p>
+            <p className="font-heading text-xl font-bold text-foreground">
+              {formatPrice(orders.filter(o => o.status === 'delivered').reduce((sum, o) => sum + Number(o.total_amount), 0))}
+            </p>
+          </div>
+        )}
+      </div>
 
       {loading ? (
         <div className="flex justify-center py-12">
