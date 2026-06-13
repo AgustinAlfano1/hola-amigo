@@ -39,12 +39,13 @@ const Index = () => {
   const [selectedProduct, setSelectedProduct] = useState<DBProduct | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [showAll, setShowAll] = useState(false);
-  const [pageSize, setPageSize] = useState(() => window.innerWidth < 768 ? 14 : 15);
+  const [pageSize, setPageSize] = useState(() => window.matchMedia('(max-width: 767px)').matches ? 14 : 15);
 
   useEffect(() => {
-    const handleResize = () => setPageSize(window.innerWidth < 768 ? 14 : 15);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    const mq = window.matchMedia('(max-width: 767px)');
+    const handleChange = (e: MediaQueryListEvent) => setPageSize(e.matches ? 14 : 15);
+    mq.addEventListener('change', handleChange);
+    return () => mq.removeEventListener('change', handleChange);
   }, []);
   const productsRef = useRef<HTMLDivElement>(null);
 
