@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { Bell, Check, CheckCheck } from 'lucide-react';
+import { Bell, Check, CheckCheck, Trash2 } from 'lucide-react';
 import { useNotifications } from '@/hooks/useNotifications';
 
 const NotificationsBell = () => {
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -64,14 +64,22 @@ const NotificationsBell = () => {
                       {new Date(n.created_at).toLocaleString('es-AR')}
                     </p>
                   </div>
-                  {!n.is_read && (
+                  <div className="flex items-center gap-1 shrink-0">
+                    {!n.is_read && (
+                      <button
+                        onClick={() => markAsRead(n.id)}
+                        className="rounded p-1 text-muted-foreground hover:text-foreground"
+                      >
+                        <Check className="h-3.5 w-3.5" />
+                      </button>
+                    )}
                     <button
-                      onClick={() => markAsRead(n.id)}
-                      className="shrink-0 rounded p-1 text-muted-foreground hover:text-foreground"
+                      onClick={() => deleteNotification(n.id)}
+                      className="rounded p-1 text-muted-foreground hover:text-destructive transition-colors"
                     >
-                      <Check className="h-3.5 w-3.5" />
+                      <Trash2 className="h-3.5 w-3.5" />
                     </button>
-                  )}
+                  </div>
                 </div>
               ))
             )}
