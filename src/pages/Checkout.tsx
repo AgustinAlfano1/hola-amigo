@@ -163,7 +163,7 @@ const Checkout = () => {
 
         <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
           {/* Formulario */}
-          <div className="space-y-6">
+          <div className="space-y-6 lg:order-1 order-2">
 
             {/* Datos de facturación */}
             <div className="rounded-xl border border-border bg-card p-6">
@@ -273,7 +273,7 @@ const Checkout = () => {
 
                   <p className="font-body text-sm font-semibold text-foreground">Dirección completa para el envío</p>
 
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                     <div className="col-span-2">
                       <label className="font-body text-sm font-medium text-foreground">Calle *</label>
                       <input
@@ -376,7 +376,7 @@ const Checkout = () => {
           </div>
 
           {/* Resumen */}
-          <div className="space-y-4">
+          <div className="space-y-4 lg:order-2 order-1">
             <div className="rounded-xl border border-border bg-card p-6 sticky top-4">
               <h2 className="font-heading text-base font-bold uppercase tracking-wider text-foreground mb-4">Resumen del pedido</h2>
               <div className="space-y-3 mb-4">

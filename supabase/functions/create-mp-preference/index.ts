@@ -47,7 +47,7 @@ serve(async (req) => {
     const userId = claimsData.user.id;
     const userEmail = claimsData.user.email;
 
-    const { items, shipping_cost, delivery_type, shipping_address, shipping_postal_code, billing_name, billing_dni_cuit } = await req.json();
+    const { items, shipping_cost, delivery_type, shipping_address, shipping_postal_code, billing_name, billing_dni_cuit, invoice_type } = await req.json();
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return new Response(JSON.stringify({ error: "Carrito vacío" }), {
@@ -75,6 +75,7 @@ serve(async (req) => {
         shipping_postal_code: shipping_postal_code || null,
         billing_name: billing_name || null,
         billing_dni_cuit: billing_dni_cuit || null,
+        invoice_type: invoice_type || 'consumidor_final',
       })
       .select()
       .single();
