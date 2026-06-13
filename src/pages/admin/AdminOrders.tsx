@@ -27,21 +27,18 @@ interface OrderItem {
   price_at_purchase: number;
 }
 
-interface Profile {
-  full_name: string | null;
-  phone: string | null;
-  dni: string | null;
-  cuil_cuit: string | null;
-  address: string | null;
-}
-
 interface Order {
   id: string;
   created_at: string;
   status: string;
   total_amount: number;
   user_id: string;
-  profile?: Profile;
+  billing_name: string | null;
+  billing_dni_cuit: string | null;
+  delivery_type: string | null;
+  shipping_address: string | null;
+  shipping_postal_code: string | null;
+  shipping_cost: number | null;
   items?: OrderItem[];
 }
 
@@ -60,28 +57,15 @@ const AdminOrders = () => {
       .order('created_at', { ascending: false });
 
     if (data) {
-      const userIds = [...new Set(data.map((o) => o.user_id))];
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, full_name, phone, dni, cuil_cuit, address')
-        .in('id', userIds);
-
-      const profileMap = new Map((profiles || []).map((p) => [p.id, p]));
-
       const ordersWithItems = await Promise.all(
         data.map(async (o) => {
           const { data: items } = await supabase
             .from('order_items')
             .select('product_name, product_brand, quantity, price_at_purchase')
             .eq('order_id', o.id);
-          return {
-            ...o,
-            profile: profileMap.get(o.user_id) || null,
-            items: items || [],
-          };
+          return { ...o, items: items || [] };
         })
       );
-
       setOrders(ordersWithItems);
     }
     setLoading(false);
@@ -141,7 +125,7 @@ const AdminOrders = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-body text-sm font-semibold text-card-foreground">
-                      {o.profile?.full_name || 'Cliente desconocido'}
+                      {o.billing_name || 'Cliente desconocido'}
                     </span>
                     <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[o.status] || 'bg-muted text-muted-foreground'}`}>
                       {statusLabels[o.status] || o.status}
@@ -172,17 +156,28 @@ const AdminOrders = () => {
               {/* Expanded detail */}
               {expanded === o.id && (
                 <div className="border-t border-border px-4 py-4 grid md:grid-cols-2 gap-4 bg-muted/20">
-                  {/* Datos del cliente */}
+                  {/* Datos de facturación y envío */}
                   <div>
-                    <h4 className="font-body text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Datos del cliente</h4>
+                    <h4 className="font-body text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Datos de facturación</h4>
                     <div className="space-y-1 font-body text-sm">
-                      {o.profile?.full_name && <p><span className="text-muted-foreground">Nombre:</span> {o.profile.full_name}</p>}
-                      {o.profile?.phone && <p><span className="text-muted-foreground">Teléfono:</span> {o.profile.phone}</p>}
-                      {o.profile?.dni && <p><span className="text-muted-foreground">DNI:</span> {o.profile.dni}</p>}
-                      {o.profile?.cuil_cuit && <p><span className="text-muted-foreground">CUIL/CUIT:</span> {o.profile.cuil_cuit}</p>}
-                      {o.profile?.address && <p><span className="text-muted-foreground">Dirección:</span> {o.profile.address}</p>}
-                      {!o.profile?.phone && !o.profile?.dni && !o.profile?.address && (
-                        <p className="text-muted-foreground italic text-xs">Sin datos adicionales cargados</p>
+                      {o.billing_name && <p><span className="text-muted-foreground">Nombre:</span> {o.billing_name}</p>}
+                      {o.billing_dni_cuit && <p><span className="text-muted-foreground">DNI/CUIT:</span> {o.billing_dni_cuit}</p>}
+                    </div>
+
+                    <h4 className="font-body text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 mt-4">Entrega</h4>
+                    <div className="space-y-1 font-body text-sm">
+                      <p>
+                        <span className="text-muted-foreground">Tipo:</span>{' '}
+                        {o.delivery_type === 'shipping' ? '🚚 Envío a domicilio' : '🏪 Retiro en local'}
+                      </p>
+                      {o.delivery_type === 'shipping' && (
+                        <>
+                          {o.shipping_address && <p><span className="text-muted-foreground">Dirección:</span> {o.shipping_address}</p>}
+                          {o.shipping_postal_code && <p><span className="text-muted-foreground">CP:</span> {o.shipping_postal_code}</p>}
+                          {o.shipping_cost != null && o.shipping_cost > 0 && (
+                            <p><span className="text-muted-foreground">Costo envío:</span> {formatPrice(Number(o.shipping_cost))}</p>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
