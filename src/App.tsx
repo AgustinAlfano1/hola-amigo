@@ -19,6 +19,8 @@ import AdminPromotions from "./pages/admin/AdminPromotions";
 import Promociones from "./pages/Promociones";
 import ResetPassword from "./pages/ResetPassword";
 import EmailConfirmed from "./pages/EmailConfirmed";
+import Checkout from "./pages/Checkout";
+import AdminShippingRates from "./pages/admin/AdminShippingRates";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +39,7 @@ const App = () => (
               <Route path="/promociones" element={<Promociones />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/email-confirmed" element={<EmailConfirmed />} />
+              <Route path="/checkout" element={<Checkout />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/products" element={<AdminProducts />} />
               <Route path="/admin/promotions" element={<AdminPromotions />} />
@@ -44,6 +47,7 @@ const App = () => (
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/import" element={<AdminImportCSV />} />
               <Route path="/admin/import-images" element={<AdminImportImages />} />
+              <Route path="/admin/shipping" element={<AdminShippingRates />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

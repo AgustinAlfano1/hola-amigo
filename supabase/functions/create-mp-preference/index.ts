@@ -47,7 +47,7 @@ serve(async (req) => {
     const userId = claimsData.user.id;
     const userEmail = claimsData.user.email;
 
-    const { items } = await req.json();
+    const { items, shipping_cost, delivery_type, shipping_address, shipping_postal_code, billing_name, billing_dni_cuit } = await req.json();
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return new Response(JSON.stringify({ error: "Carrito vacío" }), {
@@ -57,14 +57,25 @@ serve(async (req) => {
     }
 
     // Create order in DB
-    const totalAmount = items.reduce(
+    const subtotal = items.reduce(
       (sum: number, item: any) => sum + item.price * item.quantity,
       0
     );
+    const totalAmount = subtotal + (shipping_cost || 0);
 
     const { data: order, error: orderError } = await supabase
       .from("orders")
-      .insert({ user_id: userId, total_amount: totalAmount, status: "pending" })
+      .insert({
+        user_id: userId,
+        total_amount: totalAmount,
+        status: "pending",
+        shipping_cost: shipping_cost || 0,
+        delivery_type: delivery_type || 'pickup',
+        shipping_address: shipping_address || null,
+        shipping_postal_code: shipping_postal_code || null,
+        billing_name: billing_name || null,
+        billing_dni_cuit: billing_dni_cuit || null,
+      })
       .select()
       .single();
 
@@ -92,6 +103,16 @@ serve(async (req) => {
       unit_price: Number(item.price),
       currency_id: "ARS",
     }));
+
+    if (shipping_cost && shipping_cost > 0) {
+      mpItems.push({
+        title: "Costo de envío",
+        description: `Envío a domicilio - CP ${shipping_postal_code || ''}`,
+        quantity: 1,
+        unit_price: Number(shipping_cost),
+        currency_id: "ARS",
+      });
+    }
 
     const preferenceBody = {
       items: mpItems,

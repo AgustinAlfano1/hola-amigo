@@ -2,7 +2,7 @@ import { ReactNode, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdminCheck } from '@/hooks/useAdminCheck';
-import { Package, ShoppingBag, Users, LayoutDashboard, LogOut, ArrowLeft, FileUp, Images, Zap, Menu, X } from 'lucide-react';
+import { Package, ShoppingBag, Users, LayoutDashboard, LogOut, ArrowLeft, FileUp, Images, Zap, Menu, X, Truck } from 'lucide-react';
 import NotificationsBell from '@/components/admin/NotificationsBell';
 
 const navItems = [
@@ -13,6 +13,7 @@ const navItems = [
   { label: 'Usuarios', icon: Users, path: '/admin/users' },
   { label: 'Importar CSV', icon: FileUp, path: '/admin/import' },
   { label: 'Importar Imágenes', icon: Images, path: '/admin/import-images' },
+  { label: 'Tarifas de envío', icon: Truck, path: '/admin/shipping' },
 ];
 
 const AdminLayout = ({ children }: { children: ReactNode }) => {

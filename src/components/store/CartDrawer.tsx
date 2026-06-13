@@ -1,8 +1,7 @@
-import { X, Minus, Plus, Trash2, Loader2, ShoppingBag } from 'lucide-react';
+import { X, Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
 import { useState } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
@@ -11,54 +10,18 @@ const CartDrawer = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [paying, setPaying] = useState(false);
-
   const formatPrice = (price: number) =>
     new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(price);
 
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
     if (!user) {
       toast({ title: 'Iniciá sesión para comprar', variant: 'destructive' });
       setIsOpen(false);
       navigate('/auth');
       return;
     }
-
-    setPaying(true);
-    try {
-      const payload = {
-        items: items.map(({ product, quantity }) => ({
-          name: product.name,
-          brand: product.brand,
-          price: product.price,
-          quantity,
-        })),
-      };
-
-      const { data, error } = await supabase.functions.invoke('create-mp-preference', {
-        body: payload,
-      });
-
-      if (error) throw error;
-
-      const redirectUrl = data.init_point || data.sandbox_init_point;
-      if (redirectUrl) {
-        clearCart();
-        setIsOpen(false);
-        window.location.href = redirectUrl;
-      } else {
-        throw new Error('No se pudo obtener la URL de pago');
-      }
-    } catch (err: any) {
-      console.error('Checkout error:', err);
-      toast({
-        title: 'Error al procesar el pago',
-        description: err.message || 'Intentá de nuevo',
-        variant: 'destructive',
-      });
-    } finally {
-      setPaying(false);
-    }
+    setIsOpen(false);
+    navigate('/checkout');
   };
 
   if (!isOpen) return null;
@@ -155,7 +118,7 @@ const CartDrawer = () => {
             </div>
             <button
               onClick={handleCheckout}
-              disabled={paying}
+              
               className="flex w-full items-center justify-center gap-2 rounded bg-primary py-3 font-heading text-sm font-bold tracking-widest text-white transition-colors hover:bg-primary/85 disabled:opacity-50"
             >
               {paying ? (
@@ -164,7 +127,7 @@ const CartDrawer = () => {
                   Procesando...
                 </>
               ) : (
-                'Pagar con Mercado Pago'
+                'Finalizar compra'
               )}
             </button>
             <button
