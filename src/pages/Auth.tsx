@@ -20,9 +20,6 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
-  const [address, setAddress] = useState('');
-  const [dni, setDni] = useState('');
-  const [cuilCuit, setCuilCuit] = useState('');
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,8 +55,8 @@ const Auth = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName.trim() || !phone.trim() || !dni.trim()) {
-      toast({ title: 'Campos requeridos', description: 'Completá nombre, teléfono y DNI.', variant: 'destructive' });
+    if (!fullName.trim() || !phone.trim()) {
+      toast({ title: 'Campos requeridos', description: 'Completá nombre y teléfono.', variant: 'destructive' });
       return;
     }
     setLoading(true);
@@ -71,9 +68,6 @@ const Auth = () => {
         data: {
           full_name: fullName.trim(),
           phone: phone.trim(),
-          address: address.trim(),
-          dni: dni.trim(),
-          cuil_cuit: cuilCuit.trim(),
         },
       },
     });
@@ -126,23 +120,9 @@ const Auth = () => {
                     <Label htmlFor="fullName" className="font-body text-sm">Nombre completo *</Label>
                     <Input id="fullName" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Juan Pérez" required />
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="dni" className="font-body text-sm">DNI *</Label>
-                      <Input id="dni" value={dni} onChange={e => setDni(e.target.value)} placeholder="12345678" required />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="cuilCuit" className="font-body text-sm">CUIL/CUIT</Label>
-                      <Input id="cuilCuit" value={cuilCuit} onChange={e => setCuilCuit(e.target.value)} placeholder="20-12345678-9" />
-                    </div>
-                  </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="phone" className="font-body text-sm">Teléfono *</Label>
                     <Input id="phone" type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+54 11 1234-5678" required />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="address" className="font-body text-sm">Dirección</Label>
-                    <Input id="address" value={address} onChange={e => setAddress(e.target.value)} placeholder="Av. Corrientes 1234, CABA" />
                   </div>
                 </>
               )}

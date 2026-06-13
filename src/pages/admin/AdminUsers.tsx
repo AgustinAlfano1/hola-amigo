@@ -15,7 +15,7 @@ const AdminUsers = () => {
   const [toggling, setToggling] = useState<string | null>(null);
   const [editing, setEditing] = useState<UserRow | null>(null);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ full_name: '', phone: '', dni: '', cuil_cuit: '', address: '' });
+  const [form, setForm] = useState({ full_name: '', phone: '' });
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -46,7 +46,7 @@ const AdminUsers = () => {
 
   const openEdit = (user: UserRow) => {
     setEditing(user);
-    setForm({ full_name: user.full_name || '', phone: user.phone || '', dni: user.dni || '', cuil_cuit: user.cuil_cuit || '', address: user.address || '' });
+    setForm({ full_name: user.full_name || '', phone: user.phone || '' });
   };
 
   const handleSave = async () => {
@@ -84,8 +84,6 @@ const AdminUsers = () => {
                     </button>
                   </div>
                   <p className="font-body text-xs text-muted-foreground">📞 {u.phone || '—'}</p>
-                  <p className="font-body text-xs text-muted-foreground">🪪 {u.dni || '—'} · {u.cuil_cuit || '—'}</p>
-                  <p className="font-body text-xs text-muted-foreground">📍 {u.address || '—'}</p>
                   <p className="font-body text-xs text-muted-foreground">📅 {new Date(u.created_at).toLocaleDateString('es-AR')}</p>
                 </div>
                 <button onClick={() => openEdit(u)} className="rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors shrink-0">
@@ -105,9 +103,6 @@ const AdminUsers = () => {
                 <tr className="border-b border-border bg-muted/50">
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">Nombre</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">Teléfono</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">DNI</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">CUIL/CUIT</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Dirección</th>
                   <th className="px-4 py-3 text-center font-medium text-muted-foreground">Rol</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">Registro</th>
                   <th className="px-4 py-3 text-right font-medium text-muted-foreground">Acciones</th>
@@ -118,9 +113,6 @@ const AdminUsers = () => {
                   <tr key={u.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-3 font-medium text-card-foreground">{u.full_name || '—'}</td>
                     <td className="px-4 py-3 text-muted-foreground">{u.phone || '—'}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{u.dni || '—'}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{u.cuil_cuit || '—'}</td>
-                    <td className="px-4 py-3 text-muted-foreground max-w-[160px] truncate">{u.address || '—'}</td>
                     <td className="px-4 py-3 text-center">
                       <button
                         disabled={toggling === u.id}
@@ -139,7 +131,7 @@ const AdminUsers = () => {
                   </tr>
                 ))}
                 {users.length === 0 && (
-                  <tr><td colSpan={8} className="px-4 py-12 text-center text-muted-foreground">No hay usuarios registrados</td></tr>
+                  <tr><td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">No hay usuarios registrados</td></tr>
                 )}
               </tbody>
             </table>
@@ -156,9 +148,6 @@ const AdminUsers = () => {
             {[
               { label: 'Nombre completo', key: 'full_name', placeholder: 'Juan Pérez' },
               { label: 'Teléfono', key: 'phone', placeholder: '+54 11 1234-5678' },
-              { label: 'DNI', key: 'dni', placeholder: '12345678' },
-              { label: 'CUIL/CUIT', key: 'cuil_cuit', placeholder: '20-12345678-9' },
-              { label: 'Dirección', key: 'address', placeholder: 'Av. Corrientes 1234' },
             ].map(({ label, key, placeholder }) => (
               <div key={key}>
                 <label className="font-body text-sm text-muted-foreground">{label}</label>
