@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useProducts } from '@/hooks/useProducts';
 import { usePromotions } from '@/hooks/usePromotions';
 import type { Promotion } from '@/hooks/usePromotions';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import StoreHeader from '@/components/store/StoreHeader';
 import HeroBanner from '@/components/store/HeroBanner';
@@ -48,10 +49,61 @@ const Index = () => {
 
   useEffect(() => {
     const payment = searchParams.get('payment');
+    const orderId = searchParams.get('order_id');
     if (payment) {
       if (payment === 'success') toast({ title: '¡Pago exitoso!', description: 'Tu pedido fue confirmado. Gracias por tu compra.' });
       else if (payment === 'failure') toast({ title: 'Pago rechazado', description: 'El pago no se pudo procesar. Intentá de nuevo.', variant: 'destructive' });
       else if (payment === 'pending') toast({ title: 'Pago pendiente', description: 'Tu pago está siendo procesado.' });
+
+      // Insertar notificación para el admin
+      if (orderId) {
+        (async () => {
+          const { data: order } = await supabase
+            .from('orders')
+            .select('billing_name, billing_dni_cuit, invoice_type, delivery_type, shipping_address, shipping_postal_code, shipping_cost, total_amount, user_id')
+            .eq('id', orderId)
+            .single();
+
+          if (order) {
+            const { data: orderItems } = await supabase
+              .from('order_items')
+              .select('product_name, product_brand, quantity, price_at_purchase')
+              .eq('order_id', orderId);
+
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('phone')
+              .eq('id', order.user_id)
+              .single();
+
+            const statusText = payment === 'success' ? '✅ Pago aprobado' : payment === 'failure' ? '❌ Pago rechazado' : '⏳ Pago pendiente';
+            const total = Number(order.total_amount).toLocaleString('es-AR');
+            const itemsList = (orderItems || [])
+              .map((i: any) => `${i.quantity}x ${i.product_name}${i.product_brand ? ` (${i.product_brand})` : ''} - $${Number(i.price_at_purchase).toLocaleString('es-AR')}`)
+              .join(' | ');
+            const deliveryText = order.delivery_type === 'shipping'
+              ? `Envío: ${order.shipping_address || ''} (CP: ${order.shipping_postal_code || ''})`
+              : 'Retiro en local';
+
+            const message = [
+              `${order.billing_name || 'Cliente'} - Total: $${total}`,
+              profile?.phone ? `Tel: ${profile.phone}` : null,
+              order.billing_dni_cuit ? `DNI/CUIT: ${order.billing_dni_cuit}` : null,
+              order.invoice_type === 'factura_a' ? 'Factura A' : 'Consumidor Final',
+              deliveryText,
+              itemsList ? `Productos: ${itemsList}` : null,
+            ].filter(Boolean).join(' | ');
+
+            await supabase.from('notifications').insert({
+              type: 'order',
+              title: statusText,
+              message,
+              order_id: orderId,
+            });
+          }
+        })();
+      }
+
       searchParams.delete('payment');
       searchParams.delete('order_id');
       setSearchParams(searchParams, { replace: true });
