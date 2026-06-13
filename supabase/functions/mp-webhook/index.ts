@@ -44,9 +44,10 @@ serve(async (req) => {
       const paymentStatus = payment.status;
 
       if (orderId) {
+        // Aprobado → queda en "pending" para que Nicolás confirme manualmente
+        // Rechazado/cancelado → se cancela automáticamente
         let orderStatus = "pending";
-        if (paymentStatus === "approved") orderStatus = "confirmed";
-        else if (paymentStatus === "rejected" || paymentStatus === "cancelled") orderStatus = "cancelled";
+        if (paymentStatus === "rejected" || paymentStatus === "cancelled") orderStatus = "cancelled";
 
         await supabase.from("orders").update({ status: orderStatus }).eq("id", orderId);
 
