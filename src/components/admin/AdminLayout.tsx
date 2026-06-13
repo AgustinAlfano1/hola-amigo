@@ -89,7 +89,7 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
     <div className="flex h-screen bg-background overflow-hidden">
 
       {/* DESKTOP sidebar */}
-      <aside className="hidden md:flex w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground">
+      <aside className="hidden lg:flex w-56 shrink-0 flex-col bg-sidebar text-sidebar-foreground">
         <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary">
@@ -105,8 +105,8 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
       {/* MOBILE overlay sidebar */}
       {sidebarOpen && (
         <>
-          <div className="fixed inset-0 z-40 bg-black/60 md:hidden" onClick={() => setSidebarOpen(false)} />
-          <aside className="fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-sidebar text-sidebar-foreground shadow-2xl md:hidden">
+          <div className="fixed inset-0 z-40 bg-black/60 lg:hidden" onClick={() => setSidebarOpen(false)} />
+          <aside className="fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-sidebar text-sidebar-foreground shadow-2xl lg:hidden">
             <div className="flex h-14 items-center justify-between border-b border-sidebar-border px-4">
               <span className="font-heading text-base font-bold tracking-wider text-sidebar-foreground">Admin Panel</span>
               <button onClick={() => setSidebarOpen(false)} className="rounded-lg p-1.5 text-sidebar-foreground hover:bg-sidebar-accent">
@@ -122,7 +122,7 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
       <div className="flex flex-1 flex-col overflow-hidden">
 
         {/* MOBILE top bar */}
-        <div className="flex h-14 items-center justify-between border-b border-border bg-card px-4 md:hidden">
+        <div className="flex h-14 items-center justify-between border-b border-border bg-card px-4 lg:hidden">
           <button onClick={() => setSidebarOpen(true)} className="rounded-lg p-2 text-muted-foreground hover:bg-muted">
             <Menu className="h-5 w-5" />
           </button>
@@ -134,7 +134,7 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
 
         {/* Content */}
         <main className="flex-1 overflow-auto">
-          <div className="p-4 md:p-6">{children}</div>
+          <div className="p-4 lg:p-6">{children}</div>
         </main>
       </div>
     </div>
