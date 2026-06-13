@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,6 +17,9 @@ const Checkout = () => {
   const [shippingCost, setShippingCost] = useState(0);
   const [postalCodeStatus, setPostalCodeStatus] = useState<'idle' | 'loading' | 'found' | 'not_found'>('idle');
   const [paying, setPaying] = useState(false);
+  const [cpSuggestions, setCpSuggestions] = useState<{ postal_code: string; zone_name: string | null; cost: number }[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const cpWrapperRef = useRef<HTMLDivElement>(null);
 
   const [form, setForm] = useState({
     billing_name: '',
@@ -34,28 +37,63 @@ const Checkout = () => {
     if (items.length === 0) { navigate('/'); return; }
   }, [user, items]);
 
-  // Buscar tarifa por código postal
+  // Cerrar sugerencias al hacer click fuera
   useEffect(() => {
-    if (deliveryType !== 'shipping' || form.postal_code.length < 4) {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (cpWrapperRef.current && !cpWrapperRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Buscar tarifa por código postal (fuzzy: 1708 encuentra B1708)
+  useEffect(() => {
+    if (deliveryType !== 'shipping' || form.postal_code.length < 3) {
       setShippingCost(0);
       setPostalCodeStatus('idle');
+      setCpSuggestions([]);
+      setShowSuggestions(false);
       return;
     }
     const timer = setTimeout(async () => {
       setPostalCodeStatus('loading');
+      const query = form.postal_code.trim();
+
+      // Buscar exact match primero, luego fuzzy (sin letra prefix)
       const { data } = await supabase
         .from('shipping_rates')
-        .select('cost')
-        .eq('postal_code', form.postal_code.trim())
-        .single();
-      if (data) {
-        setShippingCost(Number(data.cost));
-        setPostalCodeStatus('found');
+        .select('postal_code, zone_name, cost')
+        .or(`postal_code.ilike.${query},postal_code.ilike.B${query},postal_code.ilike.%${query}%`)
+        .order('postal_code')
+        .limit(6);
+
+      if (data && data.length > 0) {
+        // Exact match (con o sin B)?
+        const exact = data.find(
+          r => r.postal_code.toLowerCase() === query.toLowerCase() ||
+               r.postal_code.toLowerCase() === `b${query.toLowerCase()}`
+        );
+        if (exact) {
+          setShippingCost(Number(exact.cost));
+          setPostalCodeStatus('found');
+          setCpSuggestions([]);
+          setShowSuggestions(false);
+        } else {
+          // Mostrar sugerencias
+          setCpSuggestions(data as any);
+          setShowSuggestions(true);
+          setShippingCost(0);
+          setPostalCodeStatus('idle');
+        }
       } else {
         setShippingCost(0);
         setPostalCodeStatus('not_found');
+        setCpSuggestions([]);
+        setShowSuggestions(false);
       }
-    }, 600);
+    }, 500);
     return () => clearTimeout(timer);
   }, [form.postal_code, deliveryType]);
 
@@ -194,17 +232,48 @@ const Checkout = () => {
                   </div>
                   <div>
                     <label className="font-body text-sm font-medium text-foreground">Código postal *</label>
-                    <div className="relative mt-1">
+                    <div className="relative mt-1" ref={cpWrapperRef}>
                       <input
                         type="text"
                         value={form.postal_code}
-                        onChange={e => setForm(f => ({ ...f, postal_code: e.target.value }))}
-                        placeholder="1708"
+                        onChange={e => {
+                          setForm(f => ({ ...f, postal_code: e.target.value }));
+                          setPostalCodeStatus('idle');
+                          setShippingCost(0);
+                        }}
+                        onFocus={() => cpSuggestions.length > 0 && setShowSuggestions(true)}
+                        placeholder="1708 o B1708"
                         maxLength={8}
                         className="w-full rounded-lg border border-input bg-background px-3 py-2.5 font-body text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary pr-10"
                       />
                       {postalCodeStatus === 'loading' && (
                         <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin text-muted-foreground" />
+                      )}
+                      {showSuggestions && cpSuggestions.length > 0 && (
+                        <div className="absolute z-50 mt-1 w-full rounded-lg border border-border bg-background shadow-lg overflow-hidden">
+                          {cpSuggestions.map(s => (
+                            <button
+                              key={s.postal_code}
+                              type="button"
+                              onClick={() => {
+                                setForm(f => ({ ...f, postal_code: s.postal_code }));
+                                setShippingCost(Number(s.cost));
+                                setPostalCodeStatus('found');
+                                setCpSuggestions([]);
+                                setShowSuggestions(false);
+                              }}
+                              className="flex w-full items-center justify-between px-3 py-2.5 text-left hover:bg-muted transition-colors border-b border-border last:border-0"
+                            >
+                              <div>
+                                <span className="font-body text-sm font-semibold text-foreground">{s.postal_code}</span>
+                                {s.zone_name && (
+                                  <span className="ml-2 font-body text-sm text-muted-foreground">{s.zone_name}</span>
+                                )}
+                              </div>
+                              <span className="font-body text-sm font-medium text-primary">{formatPrice(s.cost)}</span>
+                            </button>
+                          ))}
+                        </div>
                       )}
                     </div>
                     {postalCodeStatus === 'found' && (
