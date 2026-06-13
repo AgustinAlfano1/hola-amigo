@@ -35,9 +35,9 @@ const AdminDashboard = () => {
         supabase.from('orders').select('id', { count: 'exact', head: true })
           .not('status', 'in', '(delivered,cancelled)'),
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
-        // Ingresos: solo pedidos entregados en el mes seleccionado
+        // Ingresos: pedidos pagados del mes (confirmados, en camino o entregados)
         supabase.from('orders').select('total_amount')
-          .eq('status', 'delivered')
+          .in('status', ['confirmed', 'shipped', 'delivered'])
           .gte('created_at', from)
           .lt('created_at', to),
       ]);

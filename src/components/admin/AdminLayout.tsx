@@ -10,7 +10,7 @@ const navItems = [
   { label: 'Productos', icon: Package, path: '/admin/products' },
   { label: 'Promociones', icon: Zap, path: '/admin/promotions' },
   { label: 'Pedidos', icon: ShoppingBag, path: '/admin/orders' },
-  { label: 'Historial', icon: History, path: '/admin/order-history' },
+  { label: 'Ingresos', icon: History, path: '/admin/order-history' },
   { label: 'Usuarios', icon: Users, path: '/admin/users' },
   { label: 'Importar CSV', icon: FileUp, path: '/admin/import' },
   { label: 'Importar Imágenes', icon: Images, path: '/admin/import-images' },

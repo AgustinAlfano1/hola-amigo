@@ -87,8 +87,8 @@ const AdminOrderHistory = () => {
 
   return (
     <AdminLayout>
-      <h2 className="font-heading text-2xl font-bold text-foreground mb-2">Historial de pedidos</h2>
-      <p className="font-body text-sm text-muted-foreground mb-6">Pedidos entregados y cancelados</p>
+      <h2 className="font-heading text-2xl font-bold text-foreground mb-2">Ingresos</h2>
+      <p className="font-body text-sm text-muted-foreground mb-6">Detalle de todos los pedidos entregados y cancelados</p>
 
       {loading ? (
         <div className="flex justify-center py-12">
