@@ -16,7 +16,7 @@ import type { SortOption } from '@/components/store/SortBar';
 import type { DBProduct } from '@/hooks/useProducts';
 import { ChevronLeft, ChevronRight, LayoutGrid } from 'lucide-react';
 
-const PAGE_SIZE = 15;
+const PAGE_SIZE = 14;
 
 const applySort = (products: DBProduct[], sort: SortOption) => {
   const arr = [...products];
