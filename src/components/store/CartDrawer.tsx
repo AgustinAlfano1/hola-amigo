@@ -1,5 +1,4 @@
 import { X, Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
-import { useState } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -121,14 +120,7 @@ const CartDrawer = () => {
               
               className="flex w-full items-center justify-center gap-2 rounded bg-primary py-3 font-heading text-sm font-bold tracking-widest text-white transition-colors hover:bg-primary/85 disabled:opacity-50"
             >
-              {paying ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Procesando...
-                </>
-              ) : (
-                'Finalizar compra'
-              )}
+              Finalizar compra
             </button>
             <button
               onClick={clearCart}
